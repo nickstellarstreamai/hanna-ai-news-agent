@@ -1,16 +1,19 @@
 # Hanna AI News Agent
 
-An AI-powered content intelligence system for career/work content creators. Automatically generates weekly content ideas, tracks trends, and provides an interactive chatbot assistant.
+An AI-powered content intelligence system for career/work content creators. Uses real-time web search (Tavily API), memory-enhanced analysis, and OAuth2 Google Docs integration to automatically generate strategic weekly intelligence reports with 15+ content ideas, trend analysis, and professional delivery.
 
 ## Features
 
-🤖 **AI Content Assistant**: Interactive chatbot that knows everything about trends, competitors, and historical performance  
-📊 **Weekly Reports**: Automated reports with 12-20 content ideas, themes, and trends  
-🎯 **Content Pillars**: Organized around career development, workplace culture, leadership, salary negotiation, personal branding, and future of work  
-📰 **Multi-Source Intelligence**: Real-time web search via Tavily API, legacy RSS feeds, Reddit, and social media  
-📱 **Platform-Specific Ideas**: TikTok and LinkedIn optimized content with hooks, formats, and key points  
-📈 **Performance Analytics**: Track what works and generate ideas based on historical winners  
-💬 **Slack Integration**: Weekly summaries posted automatically to Slack  
+🔍 **Real-Time Web Search**: Tavily API integration for fresh content discovery (1000 free searches/month)
+🧠 **Memory System**: Historical tracking prevents duplication and builds narrative continuity across reports
+📄 **OAuth2 Google Docs**: Reliable document creation using personal Google Drive storage
+📊 **Strategic Reports**: Weekly intelligence with detailed frameworks matching Hanna's content strategy
+📧 **Automated Email Delivery**: Professional HTML reports to hanna@hannagetshired.com + nick@stellarstreamai.com
+🎯 **Content Pillars**: 5 specialized categories aligned with Hanna's 2025 strategy
+📱 **Platform-Specific Ideas**: TikTok and LinkedIn content with hooks, narratives, and engagement prompts
+🤖 **AI Content Assistant**: Interactive chatbot with trend knowledge and historical performance
+💬 **Slack Integration**: Weekly summaries posted automatically to Slack
+⏰ **Automated Scheduling**: Monday 7 AM Pacific Time delivery  
 
 ## Quick Start
 
@@ -212,29 +215,43 @@ The chatbot has access to:
 ## Scheduled Automation
 
 The system runs automatically:
-- **Weekly Reports**: Every Monday at 9 AM PT (configurable)
-- **Data Ingestion**: Continuous background updates
-- **Slack Notifications**: Automatic weekly summaries
+- **Weekly Reports**: Every Monday at 7:00 AM Pacific Time (configured)
+- **Email Delivery**: Professional reports to hanna@hannagetshired.com + nick@stellarstreamai.com
+- **Google Docs**: Automatic creation in "Hanna AI Weekly Reports" folder
+- **Memory System**: Historical tracking and pattern analysis
+- **Slack Notifications**: Automatic weekly summaries (optional)
 
-## Tavily Integration
+## System Architecture
 
-This system now uses **Tavily's AI-powered search API** as the primary data source, replacing many unreliable RSS feeds with real-time, AI-optimized web content.
+### **Core Integrations**
 
-### Key Benefits:
-- **Real-time Content**: Fresh web data instead of stale RSS feeds
-- **AI-Optimized**: Results designed specifically for LLM consumption
-- **Cost Effective**: 1,000 free searches per month
-- **Content Pillar Mapping**: Searches automatically align with Hanna's 5 content pillars
-- **Strategy Integration**: Full context from Hanna's 2025 Content Pillar Strategy
-- **Citation Ready**: All results include proper source citations
+**🔍 Tavily API Integration**
+- **Primary Data Source**: Real-time web search replacing unreliable RSS feeds
+- **Search Strategy**: Targeted queries across 5 content pillars
+- **Cost**: 1,000 free searches per month (current usage: ~50/month)
+- **Quality**: AI-optimized results with citations designed for LLM consumption
 
-### Search Strategy:
-The system generates targeted searches for each of Hanna's content pillars:
-1. **Career Clarity & Goals**: Career assessment, pivot strategies, goal setting
-2. **Personal Branding & Visibility**: LinkedIn optimization, networking, thought leadership
-3. **Strategic Growth & Skills**: Salary negotiation, upskilling, advancement tactics
-4. **Workplace Trends & Advocacy**: Remote work, pay transparency, diversity initiatives
-5. **Work that Complements Life**: Work-life balance, burnout prevention, flexibility
+**🧠 Memory System**
+- **Historical Tracking**: `data/report-memory.json` stores past report summaries
+- **Pattern Analysis**: `data/cumulative-insights.md` identifies trends and gaps
+- **Duplication Prevention**: AI analysis includes historical context
+- **Narrative Continuity**: Builds on previous insights across weeks
+
+**🔐 OAuth2 Google Docs**
+- **Authentication**: Personal Google Drive using OAuth2 (not service account)
+- **Storage**: 15 GB personal Drive storage (no quota issues)
+- **Format**: Professional documents matching `SAMPLE_REPORT.md` structure
+- **Sharing**: Automatic public sharing with anyone-with-link permissions
+
+**📧 Email Automation**
+- **Recipients**: hanna@hannagetshired.com (primary) + nick@stellarstreamai.com (CC)
+- **Schedule**: Every Monday 7:00 AM Pacific Time
+- **Format**: Professional HTML with Google Doc links and content previews
+
+**📈 Strategy Integration**
+- **Context Document**: `Hanna 2025 Content Pillars Strategy.md`
+- **AI Analysis**: GPT-4 with full strategy context
+- **Content Alignment**: Supports Momentum Tracker, coaching, membership goals
 
 ## Architecture
 

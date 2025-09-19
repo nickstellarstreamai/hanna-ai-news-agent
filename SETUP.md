@@ -1,4 +1,4 @@
-# Setup Guide - Hanna AI News Agent
+# Complete Setup Guide - Updated Sep 19, 2025 - Hanna AI News Agent
 
 This guide will walk you through setting up the AI news agent step by step.
 
