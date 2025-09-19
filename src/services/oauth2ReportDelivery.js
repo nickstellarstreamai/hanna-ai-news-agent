@@ -182,108 +182,113 @@ class OAuth2ReportDeliveryService {
       currentIndex += text.length;
     };
 
+    // Helper function to add headings with proper Google Docs heading styles
+    const addHeading = (text, level = 1) => {
+      const headingStyles = {
+        1: { fontSize: { magnitude: 20, unit: 'PT' }, bold: true },
+        2: { fontSize: { magnitude: 16, unit: 'PT' }, bold: true },
+        3: { fontSize: { magnitude: 14, unit: 'PT' }, bold: true }
+      };
+
+      const startIndex = currentIndex;
+
+      requests.push({
+        insertText: {
+          location: { index: currentIndex },
+          text: text + '\n\n'
+        }
+      });
+
+      // Apply heading style
+      requests.push({
+        updateParagraphStyle: {
+          range: { startIndex, endIndex: currentIndex + text.length },
+          paragraphStyle: {
+            namedStyleType: `HEADING_${level}`
+          },
+          fields: 'namedStyleType'
+        }
+      });
+
+      // Also apply text formatting
+      requests.push({
+        updateTextStyle: {
+          range: { startIndex, endIndex: currentIndex + text.length },
+          textStyle: headingStyles[level] || headingStyles[1],
+          fields: Object.keys(headingStyles[level] || headingStyles[1]).join(',')
+        }
+      });
+
+      currentIndex += text.length + 2; // +2 for \n\n
+    };
+
     // Use the full SAMPLE_REPORT.md content structure
     const sections = this.parseReportMarkdown(reportMarkdown);
 
-    // Title and subtitle from SAMPLE_REPORT.md format
-    addFormattedText(`Hanna's Weekly Career Intelligence Brief — ${reportData.metadata.weekStart}\n\n`, {
-      fontSize: { magnitude: 24, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.2, green: 0.25, blue: 0.31 } } }
-    });
+    // Main title using Heading 1
+    addHeading(`Hanna's Weekly Career Intelligence Brief — ${reportData.metadata.weekStart}`, 1);
 
     addFormattedText(`Generated from ${reportData.metadata.totalSources} sources across 5 content pillars using AI-powered Tavily research and strategic analysis\n\n`, {
       fontSize: { magnitude: 12, unit: 'PT' },
       italic: true
     });
 
-    addFormattedText('─────────────────────────────────────────────────────────\n\n');
-
-    // Executive Summary
-    addFormattedText('🎯 Executive Summary\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.4, green: 0.47, blue: 0.91 } } }
-    });
+    // Executive Summary - Heading 2
+    addHeading('🎯 Executive Summary', 2);
 
     if (sections.executiveSummary) {
       addFormattedText(sections.executiveSummary + '\n\n');
     }
 
-    addFormattedText('─────────────────────────────────────────────────────────\n\n');
-
-    // Key Stories & Content Opportunities
-    addFormattedText('📰 Key Stories & Content Opportunities\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.8, green: 0.2, blue: 0.2 } } }
-    });
+    // Key Stories & Content Opportunities - Heading 2
+    addHeading('📰 Key Stories & Content Opportunities', 2);
 
     if (sections.keyStories) {
-      addFormattedText(sections.keyStories + '\n\n');
+      // Parse and format individual stories with Heading 3
+      const cleanStories = this.formatStoriesWithHeadings(sections.keyStories);
+      addFormattedText(cleanStories + '\n\n');
     }
 
-    // Content Hooks & Frameworks
-    addFormattedText('💡 Content Hooks & Frameworks\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.2, green: 0.7, blue: 0.2 } } }
-    });
+    // Content Hooks & Frameworks - Heading 2
+    addHeading('💡 Content Hooks & Frameworks', 2);
 
     if (sections.contentHooks) {
-      addFormattedText(sections.contentHooks + '\n\n');
+      const cleanHooks = this.formatHooksWithHeadings(sections.contentHooks);
+      addFormattedText(cleanHooks + '\n\n');
     }
 
-    // Platform-Specific Ideas
-    addFormattedText('🎨 Platform-Specific Ideas\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.6, green: 0.2, blue: 0.8 } } }
-    });
+    // Platform-Specific Ideas - Heading 2
+    addHeading('🎨 Platform-Specific Ideas', 2);
 
     if (sections.platformIdeas) {
-      addFormattedText(sections.platformIdeas + '\n\n');
+      const cleanPlatform = this.formatPlatformWithHeadings(sections.platformIdeas);
+      addFormattedText(cleanPlatform + '\n\n');
     }
 
-    // Trend Analysis
-    addFormattedText('📊 Trend Analysis\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.8, green: 0.4, blue: 0.0 } } }
-    });
+    // Trend Analysis - Heading 2
+    addHeading('📊 Trend Analysis', 2);
 
     if (sections.trendAnalysis) {
       addFormattedText(sections.trendAnalysis + '\n\n');
     }
 
-    // Community Engagement Prompts
-    addFormattedText('🗣️ Community Engagement Prompts\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.0, green: 0.5, blue: 0.7 } } }
-    });
+    // Community Engagement Prompts - Heading 2
+    addHeading('🗣️ Community Engagement Prompts', 2);
 
     if (sections.communityPrompts) {
       addFormattedText(sections.communityPrompts + '\n\n');
     }
 
-    // Research Sources
-    addFormattedText('📚 Research Sources\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.8, green: 0.4, blue: 0.0 } } }
-    });
+    // Research Sources - Heading 2
+    addHeading('📚 Research Sources', 2);
 
     if (sections.researchSources) {
-      addFormattedText(sections.researchSources + '\n\n');
+      const cleanSources = this.formatSourcesWithHeadings(sections.researchSources);
+      addFormattedText(cleanSources + '\n\n');
     }
 
-    // Report Metadata
-    addFormattedText('📈 Report Metadata\n\n', {
-      fontSize: { magnitude: 18, unit: 'PT' },
-      bold: true,
-      foregroundColor: { color: { rgbColor: { red: 0.5, green: 0.5, blue: 0.5 } } }
-    });
+    // Report Metadata - Heading 2
+    addHeading('📈 Report Metadata', 2);
 
     const metadataText = `• Generated: ${reportData.metadata.generatedDate}
 • Total Sources: ${reportData.metadata.totalSources} articles analyzed
@@ -295,9 +300,8 @@ class OAuth2ReportDeliveryService {
 `;
     addFormattedText(metadataText);
 
-    // Footer
-    addFormattedText('─────────────────────────────────────────────────────────\n\n');
-    addFormattedText('This report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration. All sources are cited for further research and verification. The system automatically tracks covered topics to ensure fresh content each week and builds narrative continuity across reports.\n', {
+    // Footer - simple and clean
+    addFormattedText('\n\nThis report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration. All sources are cited for further research and verification.\n', {
       fontSize: { magnitude: 10, unit: 'PT' },
       italic: true
     });
@@ -353,6 +357,76 @@ class OAuth2ReportDeliveryService {
       .trim();
 
     return content;
+  }
+
+  /**
+   * Format stories section with proper headings
+   */
+  formatStoriesWithHeadings(storiesText) {
+    // Split by story headers and add proper structure
+    let formatted = storiesText;
+
+    // Convert story titles to cleaner format
+    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+
+    // Clean up any remaining markdown
+    formatted = formatted
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '');
+
+    return formatted;
+  }
+
+  /**
+   * Format hooks section with proper headings
+   */
+  formatHooksWithHeadings(hooksText) {
+    let formatted = hooksText;
+
+    // Convert hook categories to cleaner format
+    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+
+    // Clean up markdown
+    formatted = formatted
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '');
+
+    return formatted;
+  }
+
+  /**
+   * Format platform section with proper headings
+   */
+  formatPlatformWithHeadings(platformText) {
+    let formatted = platformText;
+
+    // Convert platform categories (### TikTok, ### LinkedIn) to cleaner format
+    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+
+    // Clean up markdown
+    formatted = formatted
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '');
+
+    return formatted;
+  }
+
+  /**
+   * Format sources section with proper headings
+   */
+  formatSourcesWithHeadings(sourcesText) {
+    let formatted = sourcesText;
+
+    // Convert source categories to cleaner format
+    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+
+    // Clean up markdown and make URLs more readable
+    formatted = formatted
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/🔗 \[([^\]]+)\]\(([^)]+)\)/g, '🔗 $1\n   Link: $2');
+
+    return formatted;
   }
 
   async sendEmailWithReport(recipientEmail, googleDocData, reportData) {
