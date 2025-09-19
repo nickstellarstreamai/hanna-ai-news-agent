@@ -38,6 +38,7 @@
     "lodash": "^4.17.21",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.5",
+    "open": "^10.2.0",
     "openai": "^4.20.1",
     "rss-parser": "^3.13.0",
     "sqlite3": "^5.1.6",

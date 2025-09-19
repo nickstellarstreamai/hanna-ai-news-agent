@@ -6,6 +6,7 @@ import { AUDIENCE_SEGMENTS } from '../config/audienceSegments.js';
 import researchAgents from './researchAgents.js';
 import { TavilyService } from './tavilyService.js';
 import { ReportMemoryService } from './reportMemoryService.js';
+import oauth2ReportDelivery from './oauth2ReportDelivery.js';
 import { logger } from '../utils/logger.js';
 import fs from 'fs/promises';
 
@@ -576,13 +577,39 @@ ${reportData.sources.map((source, index) =>
       
       logger.info(`Report saved: ${filepath}, ${jsonFilepath}, and ${obsidianFilepath}`);
       
-      return {
-        markdown: filepath,
-        json: jsonFilepath,
-        obsidian: obsidianFilepath,
-        data: reportData,
-        formatted: formattedReport
-      };
+      // Deliver report via email with OAuth2 Google Docs
+      logger.info('Delivering report via OAuth2...');
+      try {
+        const deliveryResult = await oauth2ReportDelivery.deliverReport(
+          reportData,
+          formattedReport,
+          process.env.REPORT_TO_EMAIL || 'hanna@hannagetshired.com'
+        );
+
+        logger.info(`Report delivered successfully via OAuth2 - Google Doc: ${deliveryResult.googleDoc.url}`);
+
+        return {
+          markdown: filepath,
+          json: jsonFilepath,
+          obsidian: obsidianFilepath,
+          data: reportData,
+          formatted: formattedReport,
+          delivery: deliveryResult,
+          googleDoc: deliveryResult.googleDoc
+        };
+
+      } catch (deliveryError) {
+        logger.error('OAuth2 delivery failed, report still saved locally:', deliveryError.message);
+
+        return {
+          markdown: filepath,
+          json: jsonFilepath,
+          obsidian: obsidianFilepath,
+          data: reportData,
+          formatted: formattedReport,
+          deliveryError: deliveryError.message
+        };
+      }
       
     } catch (error) {
       logger.error('Error saving report:', error);

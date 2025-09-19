@@ -44,8 +44,9 @@ TAVILY_API_KEY=your_tavily_key_here
 TIKTOK_API_KEY=your_tiktok_key_here
 LINKEDIN_API_KEY=your_linkedin_key_here
 
-# Optional: Google Docs integration
-GOOGLE_SERVICE_ACCOUNT_JSON=path/to/service-account.json
+# Required: OAuth2 for Google Docs integration
+GOOGLE_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret_here
 
 # Optional: Slack notifications  
 SLACK_BOT_TOKEN=xoxb-your-slack-bot-token
@@ -56,7 +57,17 @@ REDDIT_CLIENT_ID=your_reddit_client_id
 REDDIT_CLIENT_SECRET=your_reddit_client_secret
 ```
 
-### 3. Run the System
+### 3. Setup OAuth2 for Google Drive/Docs
+
+```bash
+# Setup OAuth2 authentication (one-time)
+node setup-oauth2.js
+
+# Follow the browser authorization flow
+# This saves tokens for automated Google Docs creation
+```
+
+### 4. Run the System
 
 ```bash
 # Start the server
