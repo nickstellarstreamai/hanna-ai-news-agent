@@ -351,8 +351,12 @@ class ReportDeliveryService {
   async sendEmailWithReport(recipientEmail, googleDocData, reportData) {
     try {
       await this.initialize();
-      
-      logger.info(`Sending email to ${recipientEmail}...`);
+
+      // Handle multiple recipients - primary and CC
+      const primaryEmail = process.env.REPORT_TO_EMAIL || recipientEmail;
+      const ccEmail = process.env.REPORT_CC_EMAIL;
+
+      logger.info(`Sending email to ${primaryEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''}...`);
       
       const emailSubject = `🚀 Hanna AI Weekly Report - ${reportData.metadata.weekStart}`;
       
@@ -479,7 +483,8 @@ Hanna AI News Agent
       
       const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: recipientEmail,
+        to: primaryEmail,
+        cc: ccEmail || undefined,
         subject: emailSubject,
         text: textBody,
         html: emailBody
@@ -487,11 +492,12 @@ Hanna AI News Agent
       
       await this.emailTransporter.sendMail(mailOptions);
       
-      logger.info(`Email sent successfully to ${recipientEmail}`);
-      
+      logger.info(`Email sent successfully to ${primaryEmail}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
+
       return {
         success: true,
-        recipient: recipientEmail,
+        recipient: primaryEmail,
+        cc: ccEmail,
         subject: emailSubject,
         googleDocUrl: googleDocData.url
       };
