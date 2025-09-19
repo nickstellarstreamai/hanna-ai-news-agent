@@ -157,8 +157,10 @@ class OAuth2ReportDeliveryService {
     const requests = [];
     let currentIndex = 1;
 
-    // Helper function to add formatted text
-    const addFormattedText = (text, formatting = {}) => {
+    // Helper to add text with formatting
+    const addText = (text, style = {}) => {
+      const startIndex = currentIndex;
+
       requests.push({
         insertText: {
           location: { index: currentIndex },
@@ -166,15 +168,12 @@ class OAuth2ReportDeliveryService {
         }
       });
 
-      if (Object.keys(formatting).length > 0) {
-        const startIndex = currentIndex;
-        const endIndex = currentIndex + text.length;
-
+      if (Object.keys(style).length > 0) {
         requests.push({
           updateTextStyle: {
-            range: { startIndex, endIndex },
-            textStyle: formatting,
-            fields: Object.keys(formatting).join(',')
+            range: { startIndex, endIndex: currentIndex + text.length },
+            textStyle: style,
+            fields: Object.keys(style).join(',')
           }
         });
       }
@@ -182,24 +181,18 @@ class OAuth2ReportDeliveryService {
       currentIndex += text.length;
     };
 
-    // Helper function to add headings with proper Google Docs heading styles
-    const addHeading = (text, level = 1) => {
-      const headingStyles = {
-        1: { fontSize: { magnitude: 20, unit: 'PT' }, bold: true },
-        2: { fontSize: { magnitude: 16, unit: 'PT' }, bold: true },
-        3: { fontSize: { magnitude: 14, unit: 'PT' }, bold: true }
-      };
-
+    // Helper to add proper Google Docs heading
+    const addHeading = (text, level) => {
       const startIndex = currentIndex;
 
       requests.push({
         insertText: {
           location: { index: currentIndex },
-          text: text + '\n\n'
+          text: text + '\n'
         }
       });
 
-      // Apply heading style
+      // Apply named heading style
       requests.push({
         updateParagraphStyle: {
           range: { startIndex, endIndex: currentIndex + text.length },
@@ -210,100 +203,131 @@ class OAuth2ReportDeliveryService {
         }
       });
 
-      // Also apply text formatting
+      currentIndex += text.length + 1;
+    };
+
+    // Helper to add bullet points
+    const addBulletPoint = (text) => {
+      const startIndex = currentIndex;
+
       requests.push({
-        updateTextStyle: {
-          range: { startIndex, endIndex: currentIndex + text.length },
-          textStyle: headingStyles[level] || headingStyles[1],
-          fields: Object.keys(headingStyles[level] || headingStyles[1]).join(',')
+        insertText: {
+          location: { index: currentIndex },
+          text: text + '\n'
         }
       });
 
-      currentIndex += text.length + 2; // +2 for \n\n
+      // Create bullet list
+      requests.push({
+        createParagraphBullets: {
+          range: { startIndex, endIndex: currentIndex + text.length },
+          bulletPreset: 'BULLET_DISC_CIRCLE_SQUARE'
+        }
+      });
+
+      currentIndex += text.length + 1;
     };
 
-    // Use the full SAMPLE_REPORT.md content structure
+    // Parse the markdown content
     const sections = this.parseReportMarkdown(reportMarkdown);
 
-    // Main title using Heading 1
+    // Main Title - Heading 1
     addHeading(`Hanna's Weekly Career Intelligence Brief — ${reportData.metadata.weekStart}`, 1);
 
-    addFormattedText(`Generated from ${reportData.metadata.totalSources} sources across 5 content pillars using AI-powered Tavily research and strategic analysis\n\n`, {
-      fontSize: { magnitude: 12, unit: 'PT' },
-      italic: true
+    addText(`Generated from ${reportData.metadata.totalSources} sources across 5 content pillars using AI-powered Tavily research and strategic analysis\n\n`, {
+      italic: true,
+      fontSize: { magnitude: 11, unit: 'PT' }
     });
 
     // Executive Summary - Heading 2
-    addHeading('🎯 Executive Summary', 2);
-
+    addHeading('Executive Summary', 2);
     if (sections.executiveSummary) {
-      addFormattedText(sections.executiveSummary + '\n\n');
+      addText(sections.executiveSummary + '\n\n');
     }
 
-    // Key Stories & Content Opportunities - Heading 2
-    addHeading('📰 Key Stories & Content Opportunities', 2);
-
+    // Key Stories - Heading 2
+    addHeading('Key Stories & Content Opportunities', 2);
     if (sections.keyStories) {
-      // Parse and format individual stories with Heading 3
-      const cleanStories = this.formatStoriesWithHeadings(sections.keyStories);
-      addFormattedText(cleanStories + '\n\n');
+      const stories = this.parseStories(sections.keyStories);
+      for (const story of stories) {
+        addHeading(story.title, 3);
+        addText(story.content + '\n\n');
+      }
     }
 
-    // Content Hooks & Frameworks - Heading 2
-    addHeading('💡 Content Hooks & Frameworks', 2);
-
+    // Content Hooks - Heading 2
+    addHeading('Content Hooks & Frameworks', 2);
     if (sections.contentHooks) {
-      const cleanHooks = this.formatHooksWithHeadings(sections.contentHooks);
-      addFormattedText(cleanHooks + '\n\n');
+      const hooks = this.parseHooks(sections.contentHooks);
+      for (const hookCategory of hooks) {
+        addHeading(hookCategory.title, 3);
+        for (const hook of hookCategory.items) {
+          addBulletPoint(hook);
+        }
+        addText('\n');
+      }
     }
 
-    // Platform-Specific Ideas - Heading 2
-    addHeading('🎨 Platform-Specific Ideas', 2);
-
+    // Platform Ideas - Heading 2
+    addHeading('Platform-Specific Ideas', 2);
     if (sections.platformIdeas) {
-      const cleanPlatform = this.formatPlatformWithHeadings(sections.platformIdeas);
-      addFormattedText(cleanPlatform + '\n\n');
+      const platforms = this.parsePlatformIdeas(sections.platformIdeas);
+      for (const platform of platforms) {
+        addHeading(platform.title, 3);
+        for (const idea of platform.items) {
+          addBulletPoint(idea);
+        }
+        addText('\n');
+      }
     }
 
     // Trend Analysis - Heading 2
-    addHeading('📊 Trend Analysis', 2);
-
+    addHeading('Trend Analysis', 2);
     if (sections.trendAnalysis) {
-      addFormattedText(sections.trendAnalysis + '\n\n');
+      addText(sections.trendAnalysis + '\n\n');
     }
 
-    // Community Engagement Prompts - Heading 2
-    addHeading('🗣️ Community Engagement Prompts', 2);
-
+    // Community Prompts - Heading 2
+    addHeading('Community Engagement Prompts', 2);
     if (sections.communityPrompts) {
-      addFormattedText(sections.communityPrompts + '\n\n');
+      const prompts = this.parsePrompts(sections.communityPrompts);
+      for (const promptCategory of prompts) {
+        addHeading(promptCategory.title, 3);
+        for (const prompt of promptCategory.items) {
+          addBulletPoint(prompt);
+        }
+        addText('\n');
+      }
     }
 
     // Research Sources - Heading 2
-    addHeading('📚 Research Sources', 2);
-
+    addHeading('Research Sources', 2);
     if (sections.researchSources) {
-      const cleanSources = this.formatSourcesWithHeadings(sections.researchSources);
-      addFormattedText(cleanSources + '\n\n');
+      const sources = this.parseSources(sections.researchSources);
+      for (const sourceCategory of sources) {
+        addHeading(sourceCategory.title, 3);
+        for (const source of sourceCategory.items) {
+          addText(`${source.title}\n`, { bold: true });
+          addText(`Link: ${source.url}\n`);
+          addText(`${source.description}\n\n`);
+        }
+      }
     }
 
-    // Report Metadata - Heading 2
-    addHeading('📈 Report Metadata', 2);
+    // Metadata - Heading 2
+    addHeading('Report Metadata', 2);
+    addBulletPoint(`Generated: ${new Date(reportData.metadata.generatedDate).toLocaleDateString()}`);
+    addBulletPoint(`Total Sources: ${reportData.metadata.totalSources} articles analyzed`);
+    addBulletPoint(`Content Pillars: Career Clarity, Personal Branding, Strategic Growth, Workplace Trends, Work-Life Balance`);
+    addBulletPoint(`AI Model: GPT-4 with Hanna's 2025 strategy integration`);
+    addBulletPoint(`Authentication: OAuth2 (Personal Google Drive)`);
 
-    const metadataText = `• Generated: ${reportData.metadata.generatedDate}
-• Total Sources: ${reportData.metadata.totalSources} articles analyzed
-• Content Pillars: Career Clarity & Goals, Personal Branding & Visibility, Strategic Growth & Skills Development, Workplace Trends & Advocacy, Work that Complements Life
-• AI Model: GPT-4 with Hanna's 2025 strategy integration
-• Report Type: Weekly Intelligence with Memory System Integration
-• Authentication: OAuth2 (Personal Google Drive)
+    addText('\n\n');
 
-`;
-    addFormattedText(metadataText);
-
-    // Footer - simple and clean
-    addFormattedText('\n\nThis report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration. All sources are cited for further research and verification.\n', {
-      fontSize: { magnitude: 10, unit: 'PT' },
-      italic: true
+    // Footer
+    addText('This report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration.\n', {
+      italic: true,
+      fontSize: { magnitude: 10, unit: 'PT' }
     });
 
     return requests;
@@ -360,73 +384,142 @@ class OAuth2ReportDeliveryService {
   }
 
   /**
-   * Format stories section with proper headings
+   * Parse stories into structured format
    */
-  formatStoriesWithHeadings(storiesText) {
-    // Split by story headers and add proper structure
-    let formatted = storiesText;
+  parseStories(storiesText) {
+    const stories = [];
+    const storyBlocks = storiesText.split(/^### /m).filter(block => block.trim());
 
-    // Convert story titles to cleaner format
-    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+    for (const block of storyBlocks) {
+      const lines = block.split('\n');
+      const title = lines[0].replace(/^### /, '').trim();
+      const content = lines.slice(1).join('\n').trim();
 
-    // Clean up any remaining markdown
-    formatted = formatted
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '');
+      stories.push({
+        title: title,
+        content: this.cleanMarkdown(content)
+      });
+    }
 
-    return formatted;
+    return stories;
   }
 
   /**
-   * Format hooks section with proper headings
+   * Parse hooks into structured format
    */
-  formatHooksWithHeadings(hooksText) {
-    let formatted = hooksText;
+  parseHooks(hooksText) {
+    const hookCategories = [];
+    const sections = hooksText.split(/^### /m).filter(section => section.trim());
 
-    // Convert hook categories to cleaner format
-    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+    for (const section of sections) {
+      const lines = section.split('\n');
+      const title = lines[0].replace(/^### /, '').trim();
+      const items = lines.slice(1)
+        .filter(line => line.match(/^\d+\./))
+        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')));
 
-    // Clean up markdown
-    formatted = formatted
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '');
+      if (items.length > 0) {
+        hookCategories.push({ title, items });
+      }
+    }
 
-    return formatted;
+    return hookCategories;
   }
 
   /**
-   * Format platform section with proper headings
+   * Parse platform ideas into structured format
    */
-  formatPlatformWithHeadings(platformText) {
-    let formatted = platformText;
+  parsePlatformIdeas(platformText) {
+    const platforms = [];
+    const sections = platformText.split(/^### /m).filter(section => section.trim());
 
-    // Convert platform categories (### TikTok, ### LinkedIn) to cleaner format
-    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+    for (const section of sections) {
+      const lines = section.split('\n');
+      const title = lines[0].replace(/^### /, '').trim();
+      const items = lines.slice(1)
+        .filter(line => line.match(/^\d+\./))
+        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')));
 
-    // Clean up markdown
-    formatted = formatted
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '');
+      if (items.length > 0) {
+        platforms.push({ title, items });
+      }
+    }
 
-    return formatted;
+    return platforms;
   }
 
   /**
-   * Format sources section with proper headings
+   * Parse prompts into structured format
    */
-  formatSourcesWithHeadings(sourcesText) {
-    let formatted = sourcesText;
+  parsePrompts(promptsText) {
+    const promptCategories = [];
+    const sections = promptsText.split(/^### /m).filter(section => section.trim());
 
-    // Convert source categories to cleaner format
-    formatted = formatted.replace(/^### (.+)$/gm, '\n$1\n');
+    for (const section of sections) {
+      const lines = section.split('\n');
+      const title = lines[0].replace(/^### /, '').trim();
+      const items = lines.slice(1)
+        .filter(line => line.match(/^\d+\./))
+        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '').replace(/^"(.*)"$/, '$1')));
 
-    // Clean up markdown and make URLs more readable
-    formatted = formatted
+      if (items.length > 0) {
+        promptCategories.push({ title, items });
+      }
+    }
+
+    return promptCategories;
+  }
+
+  /**
+   * Parse sources into structured format
+   */
+  parseSources(sourcesText) {
+    const sourceCategories = [];
+    const sections = sourcesText.split(/^### /m).filter(section => section.trim());
+
+    for (const section of sections) {
+      const lines = section.split('\n');
+      const title = lines[0].replace(/^### /, '').trim();
+      const items = [];
+
+      let currentItem = null;
+      for (const line of lines.slice(1)) {
+        if (line.match(/^\d+\./)) {
+          if (currentItem) items.push(currentItem);
+          currentItem = {
+            title: this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')),
+            url: '',
+            description: ''
+          };
+        } else if (line.includes('🔗') && currentItem) {
+          const urlMatch = line.match(/🔗 \[([^\]]+)\]\(([^)]+)\)/);
+          if (urlMatch) {
+            currentItem.url = urlMatch[2];
+          }
+        } else if (line.includes('📄') && currentItem) {
+          currentItem.description = this.cleanMarkdown(line.replace(/📄\s*/, ''));
+        }
+      }
+      if (currentItem) items.push(currentItem);
+
+      if (items.length > 0) {
+        sourceCategories.push({ title, items });
+      }
+    }
+
+    return sourceCategories;
+  }
+
+  /**
+   * Clean markdown formatting
+   */
+  cleanMarkdown(text) {
+    return text
       .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
       .replace(/^#{1,6}\s+/gm, '')
-      .replace(/🔗 \[([^\]]+)\]\(([^)]+)\)/g, '🔗 $1\n   Link: $2');
-
-    return formatted;
+      .trim();
   }
 
   async sendEmailWithReport(recipientEmail, googleDocData, reportData) {
