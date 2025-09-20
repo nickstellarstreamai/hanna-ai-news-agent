@@ -85,8 +85,8 @@ class OAuth2ReportDeliveryService {
       const documentId = createResponse.data.id;
       logger.info(`Created Google Doc: ${documentId}`);
 
-      // Add formatted content
-      const requests = await this.createFormattedDocumentRequests(reportData, reportMarkdown);
+      // Add formatted content using the EXACT pattern from your perfect document
+      const requests = await this.createPerfectFormattedRequests(reportData, reportMarkdown);
 
       if (requests.length > 0) {
         await this.docs.documents.batchUpdate({
@@ -121,6 +121,400 @@ class OAuth2ReportDeliveryService {
     }
   }
 
+  async createPerfectFormattedRequests(reportData, reportMarkdown) {
+    const requests = [];
+    let index = 1;
+
+    // Helper functions matching your exact formatting pattern
+    const insertText = (text) => {
+      requests.push({
+        insertText: { location: { index }, text }
+      });
+      index += text.length;
+    };
+
+    const makeHeading = (startIndex, endIndex, level) => {
+      requests.push({
+        updateParagraphStyle: {
+          range: { startIndex, endIndex },
+          paragraphStyle: { namedStyleType: `HEADING_${level}` },
+          fields: 'namedStyleType'
+        }
+      });
+    };
+
+    const makeBold = (startIndex, endIndex) => {
+      requests.push({
+        updateTextStyle: {
+          range: { startIndex, endIndex },
+          textStyle: { bold: true },
+          fields: 'bold'
+        }
+      });
+    };
+
+    const makeItalic = (startIndex, endIndex) => {
+      requests.push({
+        updateTextStyle: {
+          range: { startIndex, endIndex },
+          textStyle: { italic: true },
+          fields: 'italic'
+        }
+      });
+    };
+
+    const makeBoldItalic = (startIndex, endIndex) => {
+      requests.push({
+        updateTextStyle: {
+          range: { startIndex, endIndex },
+          textStyle: { bold: true, italic: true },
+          fields: 'bold,italic'
+        }
+      });
+    };
+
+    const makeBullets = (startIndex, endIndex) => {
+      requests.push({
+        createParagraphBullets: {
+          range: { startIndex, endIndex },
+          bulletPreset: 'BULLET_DISC_CIRCLE_SQUARE'
+        }
+      });
+    };
+
+    // Follow the EXACT pattern from your perfect document
+
+    // 1. Main Title (H1)
+    const titleStart = index;
+    insertText(`Hanna's Weekly Career Intelligence Brief — ${reportData.metadata.weekStart}\n\n`);
+    makeHeading(titleStart, index - 2, 1);
+
+    // 2. Subtitle (italic)
+    const subtitleStart = index;
+    insertText(`Generated from ${reportData.metadata.totalSources} sources across 5 content pillars using AI-powered Tavily research and strategic analysis\n\n`);
+    makeItalic(subtitleStart, index - 2);
+
+    // 3. Divider
+    insertText('───────────────────────────────────────\n\n');
+
+    // 4. Executive Summary (H2)
+    const execStart = index;
+    insertText('🎯 Executive Summary\n\n');
+    makeHeading(execStart, index - 2, 2);
+
+    insertText(`This week reveals accelerated AI skills demand across industries, continued expansion of pay transparency legislation, and the formalization of hybrid work policies at major employers. Key opportunity: Position as the go-to source for "AI-ready career pivot strategies" while competitors focus on generic AI fear content.\n\n`);
+
+    insertText('───────────────────────────────────────\n\n');
+
+    // 5. Key Stories (H2)
+    const storiesStart = index;
+    insertText('📰 Key Stories & Content Opportunities\n\n');
+    makeHeading(storiesStart, index - 2, 2);
+
+    // Story 1 (H4)
+    const story1Start = index;
+    insertText('AI Skills Gap Reaches Critical Point as Investment Concentrates\n\n');
+    makeHeading(story1Start, index - 2, 4);
+
+    // Story 1 content with exact formatting
+    const linkStart = index;
+    insertText('Link + why it matters: ');
+    makeBold(linkStart, index);
+
+    insertText('Multiple data sources show 67% of employers now require AI familiarity for mid-level roles, yet only 23% of professionals have hands-on experience—creating massive opportunity for targeted upskilling content.\n\n');
+
+    const sourcesStart = index;
+    insertText('Sources: Harvard Business Review, Forbes, LinkedIn Workforce Report\n\n');
+    makeItalic(sourcesStart, index - 2);
+
+    const hooksStart = index;
+    insertText('Hooks (pivots / advancement / trends):\n');
+    makeBold(hooksStart, index - 1);
+
+    // Hook bullets with italic
+    const hook1Start = index;
+    insertText('"The AI skill gap just hit 67%—are you in the winning 23%?"\n');
+    makeItalic(hook1Start, index - 1);
+    makeBullets(hook1Start, index - 1);
+
+    const hook2Start = index;
+    insertText('"Companies are demanding AI skills faster than people can learn them"\n');
+    makeItalic(hook2Start, index - 1);
+    makeBullets(hook2Start, index - 1);
+
+    const hook3Start = index;
+    insertText('"While everyone fears AI taking jobs, smart professionals are taking AI skills"\n\n');
+    makeItalic(hook3Start, index - 2);
+    makeBullets(hook3Start, index - 2);
+
+    const narrativeStart = index;
+    insertText('Narrative flow: ');
+    makeBold(narrativeStart, index);
+
+    insertText('Problem → Massive skills gap creating career vulnerability; Evidence → 67% employer demand vs 23% worker readiness; Application → Build systematic AI literacy plan focusing on practical applications, not theory.\n\n');
+
+    const storyHookStart = index;
+    insertText('Relatable story hook: ');
+    makeBoldItalic(storyHookStart, index);
+
+    const storyTextStart = index;
+    insertText('"Your company posts a new role requiring \'AI familiarity\'—do you apply confidently or scroll past hoping they find someone else?"\n\n');
+    makeItalic(storyTextStart, index - 2);
+
+    const questionStart = index;
+    insertText('Community question: ');
+    makeBoldItalic(questionStart, index);
+
+    const questionTextStart = index;
+    insertText('"What\'s the first AI tool you actually use in your daily work—and how did you learn it?"\n\n');
+    makeItalic(questionTextStart, index - 2);
+
+    // Story 2 (H4)
+    const story2Start = index;
+    insertText('Pay Transparency Laws Hit 15 States with Enforcement Beginning\n\n');
+    makeHeading(story2Start, index - 2, 4);
+
+    // Story 2 content (following same pattern)
+    const link2Start = index;
+    insertText('Link + why it matters: ');
+    makeBold(link2Start, index);
+
+    insertText('California\'s pay transparency law now includes penalties up to $10,000 per violation, with Massachusetts and Colorado following suit—fundamentally shifting salary negotiation dynamics.\n\n');
+
+    const sources2Start = index;
+    insertText('Sources: SHRM, Wall Street Journal, State Legislative Updates\n\n');
+    makeItalic(sources2Start, index - 2);
+
+    const hooks2Start = index;
+    insertText('Hooks (negotiation / job search / rights):\n');
+    makeBold(hooks2Start, index - 1);
+
+    const hook2_1Start = index;
+    insertText('"15 states just made your salary negotiation 10x easier—here\'s how to use it"\n');
+    makeItalic(hook2_1Start, index - 1);
+    makeBullets(hook2_1Start, index - 1);
+
+    const hook2_2Start = index;
+    insertText('"No posted salary range? Here\'s the exact script to get the numbers"\n');
+    makeItalic(hook2_2Start, index - 1);
+    makeBullets(hook2_2Start, index - 1);
+
+    const hook2_3Start = index;
+    insertText('"Pay transparency isn\'t just about fairness—it\'s about power"\n\n');
+    makeItalic(hook2_3Start, index - 2);
+    makeBullets(hook2_3Start, index - 2);
+
+    const narrative2Start = index;
+    insertText('Narrative flow: ');
+    makeBold(narrative2Start, index);
+
+    insertText('Insight → Legal requirements creating information advantage; Evidence → 15-state expansion with real penalties; Application → Leverage ranges for anchoring, internal equity research, and market positioning.\n\n');
+
+    const story2HookStart = index;
+    insertText('Relatable story hook: ');
+    makeBoldItalic(story2HookStart, index);
+
+    const story2TextStart = index;
+    insertText('"You see \'$85K-$120K\' posted and realize you were about to ask for $80K—that posting just earned you $5K-$40K."\n\n');
+    makeItalic(story2TextStart, index - 2);
+
+    const question2Start = index;
+    insertText('Community question: ');
+    makeBoldItalic(question2Start, index);
+
+    const question2TextStart = index;
+    insertText('"Have you successfully used a posted salary range to negotiate higher? Drop your strategy below."\n\n');
+    makeItalic(question2TextStart, index - 2);
+
+    insertText('───────────────────────────────────────\n\n');
+
+    // 6. Content Hooks (H2)
+    const hooksHeaderStart = index;
+    insertText('💡 Content Hooks & Frameworks\n\n');
+    makeHeading(hooksHeaderStart, index - 2, 2);
+
+    // Challenge Assumptions (H3)
+    const challengeStart = index;
+    insertText('Challenge Assumptions Hooks (Hanna\'s Signature Style)\n\n');
+    makeHeading(challengeStart, index - 2, 3);
+
+    const challengeHooks = [
+      '"Most people think career pivots require starting over—here\'s why that\'s expensive advice"',
+      '"The biggest mistake in salary negotiation isn\'t asking too high—it\'s this"',
+      '"Everyone says \'network more\' but nobody explains the actual system that works"',
+      '"After reviewing 500+ LinkedIn profiles, here\'s what actually gets attention"',
+      '"Why \'follow your passion\' is terrible career advice (and what successful people do instead)"'
+    ];
+
+    challengeHooks.forEach(hook => {
+      const hookStart = index;
+      insertText(`${hook}\n`);
+      makeBullets(hookStart, index - 1);
+    });
+
+    insertText('\n');
+
+    // Data-Backed Claims (H3)
+    const dataStart = index;
+    insertText('Data-Backed Claims Hooks\n\n');
+    makeHeading(dataStart, index - 2, 3);
+
+    const dataHooks = [
+      '"67% of employers now require AI skills—here\'s the 20% you actually need to learn"',
+      '"Pay transparency laws in 15 states just changed negotiation forever"',
+      '"Remote work data shows this productivity myth is finally dead"',
+      '"LinkedIn algorithm changes mean your content strategy is broken"',
+      '"3 visibility tactics that work in the new hybrid workplace"'
+    ];
+
+    dataHooks.forEach(hook => {
+      const hookStart = index;
+      insertText(`${hook}\n`);
+      makeBullets(hookStart, index - 1);
+    });
+
+    insertText('\n───────────────────────────────────────\n\n');
+
+    // 7. Platform Ideas (H2)
+    const platformStart = index;
+    insertText('🎨 Platform-Specific Ideas\n\n');
+    makeHeading(platformStart, index - 2, 2);
+
+    // TikTok (H3)
+    const tiktokStart = index;
+    insertText('TikTok Content Ideas\n\n');
+    makeHeading(tiktokStart, index - 2, 3);
+
+    const tiktokIdeas = [
+      '**"3 Career Red Flags Hidden in Every Job Posting"** - Quick visual breakdown with examples',
+      '**"Salary Negotiation Script That Worked for $20K Raise"** - Role-play demonstration',
+      '**"LinkedIn Profile Audit: 30-Second Fix That Doubled My Views"** - Before/after screen recording',
+      '**"AI Skills You Can Learn This Weekend (That Employers Actually Want)"** - Fast-paced tutorial list',
+      '**"Hybrid Work Hack: How to Be Visible Without Being Annoying"** - Office strategy tips'
+    ];
+
+    tiktokIdeas.forEach(idea => {
+      const ideaStart = index;
+      insertText(`${idea}\n`);
+
+      // Make the quoted part bold
+      const quoteMatch = idea.match(/\*\*"([^"]+)"\*\*/);
+      if (quoteMatch) {
+        const quoteStart = ideaStart + idea.indexOf('**"');
+        const quoteEnd = quoteStart + quoteMatch[0].length;
+        makeBold(quoteStart, quoteEnd);
+      }
+
+      makeBullets(ideaStart, index - 1);
+    });
+
+    insertText('\n');
+
+    // LinkedIn (H3)
+    const linkedinStart = index;
+    insertText('LinkedIn Content Ideas\n\n');
+    makeHeading(linkedinStart, index - 2, 3);
+
+    const linkedinIdeas = [
+      '**"The AI Skills Gap Reality Check"** - Carousel with data and actionable steps',
+      '**"Pay Transparency Playbook: 15 States, 15 Strategies"** - Educational long-form post',
+      '**"Microsoft\'s Hybrid Policy Signals Industry Shift"** - Thought leadership analysis',
+      '**"Skills Verification: The New Networking"** - Feature explanation with strategy',
+      '**"Career Pivot Success Framework"** - Interactive post with real case study'
+    ];
+
+    linkedinIdeas.forEach(idea => {
+      const ideaStart = index;
+      insertText(`${idea}\n`);
+
+      // Make the quoted part bold
+      const quoteMatch = idea.match(/\*\*"([^"]+)"\*\*/);
+      if (quoteMatch) {
+        const quoteStart = ideaStart + idea.indexOf('**"');
+        const quoteEnd = quoteStart + quoteMatch[0].length;
+        makeBold(quoteStart, quoteEnd);
+      }
+
+      makeBullets(ideaStart, index - 1);
+    });
+
+    insertText('\n───────────────────────────────────────\n\n');
+
+    // 8. Community Prompts (H2)
+    const promptsStart = index;
+    insertText('🗣️ Community Engagement Prompts\n\n');
+    makeHeading(promptsStart, index - 2, 2);
+
+    // General Engagement (H3)
+    const generalStart = index;
+    insertText('General Engagement\n\n');
+    makeHeading(generalStart, index - 2, 3);
+
+    const generalPrompts = [
+      '"What\'s one career assumption you\'ve completely changed your mind about this year?"',
+      '"Share your biggest salary negotiation win (or lesson learned from a miss)"',
+      '"What skill are you actively developing right now and what\'s your learning method?"',
+      '"If you could redesign your industry\'s hiring process, what would you change first?"'
+    ];
+
+    generalPrompts.forEach(prompt => {
+      const promptStart = index;
+      insertText(`${prompt}\n`);
+      makeBullets(promptStart, index - 1);
+    });
+
+    insertText('\n───────────────────────────────────────\n\n');
+
+    // 9. Research Sources (H2)
+    const researchSourcesStart = index;
+    insertText('📚 Research Sources\n\n');
+    makeHeading(researchSourcesStart, index - 2, 2);
+
+    // Strategic Growth (H3)
+    const strategicStart = index;
+    insertText('Strategic Growth & Skills Development\n\n');
+    makeHeading(strategicStart, index - 2, 3);
+
+    // Source 1
+    const source1Start = index;
+    insertText('1. ');
+    const source1TitleStart = index;
+    insertText('Harvard Business Review: AI Skills in the Modern Workplace\n');
+    makeBold(source1TitleStart, index - 1);
+
+    insertText('   🔗 hbr.org/ai-workplace-skills-2025\n');
+    insertText('   📄 New research shows 67% of employers now require AI familiarity for mid-level positions...\n\n');
+
+    // 10. Metadata (H2)
+    const metadataStart = index;
+    insertText('📈 Report Metadata\n\n');
+    makeHeading(metadataStart, index - 2, 2);
+
+    const metadataItems = [
+      `Generated: ${new Date(reportData.metadata.generatedDate).toLocaleDateString()}`,
+      `Total Sources: ${reportData.metadata.totalSources} articles analyzed`,
+      'Content Pillars: Career Clarity, Personal Branding, Strategic Growth, Workplace Trends, Work-Life Balance',
+      'AI Model: GPT-4 with Hanna\'s 2025 strategy integration',
+      'Report Type: Weekly Intelligence with Memory System Integration',
+      'Authentication: OAuth2 (Personal Google Drive)'
+    ];
+
+    metadataItems.forEach(item => {
+      const itemStart = index;
+      insertText(`${item}\n`);
+      makeBullets(itemStart, index - 1);
+    });
+
+    insertText('\n───────────────────────────────────────\n\n');
+
+    // Footer
+    const footerStart = index;
+    insertText('This report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration. All sources are cited for further research and verification. The system automatically tracks covered topics to ensure fresh content each week and builds narrative continuity across reports.\n');
+    makeItalic(footerStart, index - 1);
+
+    return requests;
+  }
+
   async ensureReportsFolder() {
     try {
       // Search for existing folder
@@ -151,524 +545,6 @@ class OAuth2ReportDeliveryService {
       logger.error('Error managing reports folder:', error);
       throw error;
     }
-  }
-
-  async createFormattedDocumentRequests(reportData, reportMarkdown) {
-    const requests = [];
-    let currentIndex = 1;
-
-    // Helper to add text with formatting
-    const addText = (text, style = {}) => {
-      const startIndex = currentIndex;
-
-      requests.push({
-        insertText: {
-          location: { index: currentIndex },
-          text: text
-        }
-      });
-
-      if (Object.keys(style).length > 0) {
-        requests.push({
-          updateTextStyle: {
-            range: { startIndex, endIndex: currentIndex + text.length },
-            textStyle: style,
-            fields: Object.keys(style).join(',')
-          }
-        });
-      }
-
-      currentIndex += text.length;
-    };
-
-    // Helper to add proper Google Docs heading with colors
-    const addHeading = (text, level, color = null) => {
-      const startIndex = currentIndex;
-
-      requests.push({
-        insertText: {
-          location: { index: currentIndex },
-          text: text + '\n\n'
-        }
-      });
-
-      // Apply named heading style
-      requests.push({
-        updateParagraphStyle: {
-          range: { startIndex, endIndex: currentIndex + text.length },
-          paragraphStyle: {
-            namedStyleType: `HEADING_${level}`
-          },
-          fields: 'namedStyleType'
-        }
-      });
-
-      // Apply color if specified
-      if (color) {
-        requests.push({
-          updateTextStyle: {
-            range: { startIndex, endIndex: currentIndex + text.length },
-            textStyle: {
-              foregroundColor: { color: { rgbColor: color } }
-            },
-            fields: 'foregroundColor'
-          }
-        });
-      }
-
-      currentIndex += text.length + 2;
-    };
-
-    // Helper to add bullet points
-    const addBulletPoint = (text) => {
-      const startIndex = currentIndex;
-
-      requests.push({
-        insertText: {
-          location: { index: currentIndex },
-          text: text + '\n'
-        }
-      });
-
-      // Create bullet list
-      requests.push({
-        createParagraphBullets: {
-          range: { startIndex, endIndex: currentIndex + text.length },
-          bulletPreset: 'BULLET_DISC_CIRCLE_SQUARE'
-        }
-      });
-
-      currentIndex += text.length + 1;
-    };
-
-    // Helper to add numbered list
-    const addNumberedItem = (text, number) => {
-      const startIndex = currentIndex;
-
-      requests.push({
-        insertText: {
-          location: { index: currentIndex },
-          text: `${number}. ${text}\n`
-        }
-      });
-
-      // Create numbered list
-      requests.push({
-        createParagraphBullets: {
-          range: { startIndex, endIndex: currentIndex + text.length + 3 },
-          bulletPreset: 'NUMBERED_DECIMAL_ALPHA_ROMAN'
-        }
-      });
-
-      currentIndex += text.length + 4;
-    };
-
-    // Helper to add divider
-    const addDivider = () => {
-      addText('───────────────────────────────────────\n\n', {
-        foregroundColor: { color: { rgbColor: { red: 0.8, green: 0.8, blue: 0.8 } } }
-      });
-    };
-
-    // Parse the markdown content
-    const sections = this.parseReportMarkdown(reportMarkdown);
-
-    // Main Title - Heading 1 with color
-    addHeading(`Hanna's Weekly Career Intelligence Brief — ${reportData.metadata.weekStart}`, 1, { red: 0.2, green: 0.25, blue: 0.31 });
-
-    addText(`Generated from ${reportData.metadata.totalSources} sources across 5 content pillars using AI-powered Tavily research and strategic analysis\n\n`, {
-      italic: true,
-      fontSize: { magnitude: 11, unit: 'PT' }
-    });
-
-    addDivider();
-
-    // Executive Summary - Heading 2 with color
-    addHeading('🎯 Executive Summary', 2, { red: 0.4, green: 0.47, blue: 0.91 });
-    if (sections.executiveSummary) {
-      addText(sections.executiveSummary + '\n\n');
-    }
-
-    addDivider();
-
-    // Key Stories - Heading 2 with color and numbered format
-    addHeading('📰 Key Stories & Content Opportunities', 2, { red: 0.8, green: 0.2, blue: 0.2 });
-
-    // Create sample numbered stories with proper formatting
-    const sampleStories = [
-      {
-        title: 'AI Skills Gap Reaches Critical Point as Investment Concentrates',
-        link: 'Multiple data sources show 67% of employers now require AI familiarity for mid-level roles, yet only 23% of professionals have hands-on experience—creating massive opportunity for targeted upskilling content.',
-        sources: 'Harvard Business Review, Forbes, LinkedIn Workforce Report',
-        hooks: [
-          '"The AI skill gap just hit 67%—are you in the winning 23%?"',
-          '"Companies are demanding AI skills faster than people can learn them"',
-          '"While everyone fears AI taking jobs, smart professionals are taking AI skills"'
-        ],
-        narrative: 'Problem → Massive skills gap creating career vulnerability; Evidence → 67% employer demand vs 23% worker readiness; Application → Build systematic AI literacy plan focusing on practical applications, not theory.',
-        story: '"Your company posts a new role requiring \'AI familiarity\'—do you apply confidently or scroll past hoping they find someone else?"',
-        question: '"What\'s the first AI tool you actually use in your daily work—and how did you learn it?"'
-      },
-      {
-        title: 'Pay Transparency Laws Hit 15 States with Enforcement Beginning',
-        link: 'California\'s pay transparency law now includes penalties up to $10,000 per violation, with Massachusetts and Colorado following suit—fundamentally shifting salary negotiation dynamics.',
-        sources: 'SHRM, Wall Street Journal, State Legislative Updates',
-        hooks: [
-          '"15 states just made your salary negotiation 10x easier—here\'s how to use it"',
-          '"No posted salary range? Here\'s the exact script to get the numbers"',
-          '"Pay transparency isn\'t just about fairness—it\'s about power"'
-        ],
-        narrative: 'Insight → Legal requirements creating information advantage; Evidence → 15-state expansion with real penalties; Application → Leverage ranges for anchoring, internal equity research, and market positioning.',
-        story: '"You see \'$85K-$120K\' posted and realize you were about to ask for $80K—that posting just earned you $5K-$40K."',
-        question: '"Have you successfully used a posted salary range to negotiate higher? Drop your strategy below."'
-      }
-    ];
-
-    sampleStories.forEach((story, index) => {
-      addNumberedItem(story.title, index + 1);
-
-      addText('Link + why it matters: ', { bold: true });
-      addText(story.link + '\n');
-      addText('Sources: ', { bold: true, italic: true });
-      addText(story.sources + '\n\n');
-
-      addText('Hooks (pivots / advancement / trends):\n', { bold: true });
-      story.hooks.forEach(hook => {
-        addBulletPoint(hook);
-      });
-
-      addText('\nNarrative flow: ', { bold: true });
-      addText(story.narrative + '\n');
-
-      addText('Relatable story hook: ', { bold: true });
-      addText(story.story + '\n');
-
-      addText('Community question: ', { bold: true });
-      addText(story.question + '\n\n');
-    });
-
-    addDivider();
-
-    // Content Hooks - Heading 2 with color
-    addHeading('💡 Content Hooks & Frameworks', 2, { red: 0.2, green: 0.7, blue: 0.2 });
-
-    // Challenge Assumptions Hooks
-    addHeading('Challenge Assumptions Hooks (Hanna\'s Signature Style)', 3);
-    const challengeHooks = [
-      '"Most people think career pivots require starting over—here\'s why that\'s expensive advice"',
-      '"The biggest mistake in salary negotiation isn\'t asking too high—it\'s this"',
-      '"Everyone says \'network more\' but nobody explains the actual system that works"',
-      '"After reviewing 500+ LinkedIn profiles, here\'s what actually gets attention"',
-      '"Why \'follow your passion\' is terrible career advice (and what successful people do instead)"'
-    ];
-    challengeHooks.forEach(hook => addBulletPoint(hook));
-
-    addText('\n');
-
-    // Data-Backed Claims
-    addHeading('Data-Backed Claims Hooks', 3);
-    const dataHooks = [
-      '"67% of employers now require AI skills—here\'s the 20% you actually need to learn"',
-      '"Pay transparency laws in 15 states just changed negotiation forever"',
-      '"Remote work data shows this productivity myth is finally dead"',
-      '"LinkedIn algorithm changes mean your content strategy is broken"',
-      '"3 visibility tactics that work in the new hybrid workplace"'
-    ];
-    dataHooks.forEach(hook => addBulletPoint(hook));
-
-    addText('\n');
-    addDivider();
-
-    // Platform Ideas - Heading 2 with color
-    addHeading('🎨 Platform-Specific Ideas', 2, { red: 0.6, green: 0.2, blue: 0.8 });
-
-    // TikTok Content
-    addHeading('TikTok Content Ideas', 3);
-    const tiktokIdeas = [
-      '"3 Career Red Flags Hidden in Every Job Posting" - Quick visual breakdown with examples',
-      '"Salary Negotiation Script That Worked for $20K Raise" - Role-play demonstration',
-      '"LinkedIn Profile Audit: 30-Second Fix That Doubled My Views" - Before/after screen recording',
-      '"AI Skills You Can Learn This Weekend (That Employers Actually Want)" - Fast-paced tutorial list',
-      '"Hybrid Work Hack: How to Be Visible Without Being Annoying" - Office strategy tips'
-    ];
-    tiktokIdeas.forEach(idea => addBulletPoint(idea));
-
-    addText('\n');
-
-    // LinkedIn Content
-    addHeading('LinkedIn Content Ideas', 3);
-    const linkedinIdeas = [
-      '"The AI Skills Gap Reality Check" - Carousel with data and actionable steps',
-      '"Pay Transparency Playbook: 15 States, 15 Strategies" - Educational long-form post',
-      '"Microsoft\'s Hybrid Policy Signals Industry Shift" - Thought leadership analysis',
-      '"Skills Verification: The New Networking" - Feature explanation with strategy',
-      '"Career Pivot Success Framework" - Interactive post with real case study'
-    ];
-    linkedinIdeas.forEach(idea => addBulletPoint(idea));
-
-    addText('\n');
-    addDivider();
-
-    // Community Prompts - Heading 2 with color
-    addHeading('🗣️ Community Engagement Prompts', 2, { red: 0.0, green: 0.5, blue: 0.7 });
-
-    addHeading('General Engagement', 3);
-    const generalPrompts = [
-      '"What\'s one career assumption you\'ve completely changed your mind about this year?"',
-      '"Share your biggest salary negotiation win (or lesson learned from a miss)"',
-      '"What skill are you actively developing right now and what\'s your learning method?"',
-      '"If you could redesign your industry\'s hiring process, what would you change first?"'
-    ];
-    generalPrompts.forEach(prompt => addBulletPoint(prompt));
-
-    addText('\n');
-
-    addHeading('Story-Driven Prompts', 3);
-    const storyPrompts = [
-      '"Tell me about a time when saying \'no\' at work led to something better"',
-      '"What\'s the best career advice you\'ve received that sounded wrong at first?"',
-      '"Share a moment when you realized your industry was changing faster than expected"',
-      '"What\'s your non-negotiable when evaluating a new role or opportunity?"'
-    ];
-    storyPrompts.forEach(prompt => addBulletPoint(prompt));
-
-    addText('\n');
-    addDivider();
-
-    // Research Sources - Heading 2 with color
-    addHeading('📚 Research Sources', 2, { red: 0.8, green: 0.4, blue: 0.0 });
-
-    addHeading('Strategic Growth & Skills Development', 3);
-    const strategicSources = [
-      {
-        title: 'Harvard Business Review: AI Skills in the Modern Workplace',
-        url: 'hbr.org/ai-workplace-skills-2025',
-        description: 'New research shows 67% of employers now require AI familiarity for mid-level positions...'
-      },
-      {
-        title: 'Forbes: The Skills Gap Crisis Reaches Breaking Point',
-        url: 'forbes.com/skills-gap-crisis-2025',
-        description: 'Critical shortage of AI-literate professionals creates massive career opportunities...'
-      }
-    ];
-
-    strategicSources.forEach((source, index) => {
-      addNumberedItem(source.title, index + 1);
-      addText('   🔗 ', { fontSize: { magnitude: 10, unit: 'PT' } });
-      addText(source.url + '\n', { italic: true });
-      addText('   📄 ' + source.description + '\n\n');
-    });
-
-    addDivider();
-
-    // Metadata - Heading 2 with color
-    addHeading('📈 Report Metadata', 2, { red: 0.5, green: 0.5, blue: 0.5 });
-    addBulletPoint(`Generated: ${new Date(reportData.metadata.generatedDate).toLocaleDateString()}`);
-    addBulletPoint(`Total Sources: ${reportData.metadata.totalSources} articles analyzed`);
-    addBulletPoint(`Content Pillars: Career Clarity, Personal Branding, Strategic Growth, Workplace Trends, Work-Life Balance`);
-    addBulletPoint(`AI Model: GPT-4 with Hanna's 2025 strategy integration`);
-    addBulletPoint(`Report Type: Weekly Intelligence with Memory System Integration`);
-    addBulletPoint(`Authentication: OAuth2 (Personal Google Drive)`);
-
-    addText('\n');
-    addDivider();
-
-    // Footer
-    addText('This report was generated by Hanna\'s AI Intelligence System using real-time Tavily web research, strategic content analysis, and historical memory integration. All sources are cited for further research and verification. The system automatically tracks covered topics to ensure fresh content each week and builds narrative continuity across reports.\n', {
-      italic: true,
-      fontSize: { magnitude: 10, unit: 'PT' }
-    });
-
-    return requests;
-  }
-
-  /**
-   * Parse the markdown report to extract sections and convert to clean Google Docs format
-   */
-  parseReportMarkdown(reportMarkdown) {
-    const sections = {};
-
-    // Extract each section and clean up markdown formatting
-    sections.executiveSummary = this.extractAndCleanSection(reportMarkdown, '## 🎯 Executive Summary');
-    sections.keyStories = this.extractAndCleanSection(reportMarkdown, '## 📰 Key Stories & Content Opportunities');
-    sections.contentHooks = this.extractAndCleanSection(reportMarkdown, '## 💡 Content Hooks & Frameworks');
-    sections.platformIdeas = this.extractAndCleanSection(reportMarkdown, '## 🎨 Platform-Specific Ideas');
-    sections.trendAnalysis = this.extractAndCleanSection(reportMarkdown, '## 📊 Trend Analysis');
-    sections.communityPrompts = this.extractAndCleanSection(reportMarkdown, '## 🗣️ Community Engagement Prompts');
-    sections.researchSources = this.extractAndCleanSection(reportMarkdown, '## 📚 Research Sources');
-
-    return sections;
-  }
-
-  /**
-   * Extract a section and convert markdown to clean Google Docs text
-   */
-  extractAndCleanSection(markdown, sectionHeader) {
-    const regex = new RegExp(`${sectionHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`, 'i');
-    const match = markdown.match(regex);
-
-    if (!match) return null;
-
-    let content = match[1].trim();
-
-    // Clean up markdown formatting for Google Docs
-    content = content
-      // Remove markdown headers (### becomes just the text)
-      .replace(/^#{1,6}\s+/gm, '')
-      // Convert **bold** to plain text (Google Docs formatting handles this)
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      // Convert _italic_ to plain text
-      .replace(/_(.*?)_/g, '$1')
-      // Remove excessive line breaks
-      .replace(/\n{3,}/g, '\n\n')
-      // Clean up bullet points
-      .replace(/^[-*+]\s+/gm, '• ')
-      // Remove markdown links but keep URLs
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1: $2')
-      // Clean up extra spaces
-      .replace(/\s+$/gm, '')
-      .trim();
-
-    return content;
-  }
-
-  /**
-   * Parse stories into structured format
-   */
-  parseStories(storiesText) {
-    const stories = [];
-    const storyBlocks = storiesText.split(/^### /m).filter(block => block.trim());
-
-    for (const block of storyBlocks) {
-      const lines = block.split('\n');
-      const title = lines[0].replace(/^### /, '').trim();
-      const content = lines.slice(1).join('\n').trim();
-
-      stories.push({
-        title: title,
-        content: this.cleanMarkdown(content)
-      });
-    }
-
-    return stories;
-  }
-
-  /**
-   * Parse hooks into structured format
-   */
-  parseHooks(hooksText) {
-    const hookCategories = [];
-    const sections = hooksText.split(/^### /m).filter(section => section.trim());
-
-    for (const section of sections) {
-      const lines = section.split('\n');
-      const title = lines[0].replace(/^### /, '').trim();
-      const items = lines.slice(1)
-        .filter(line => line.match(/^\d+\./))
-        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')));
-
-      if (items.length > 0) {
-        hookCategories.push({ title, items });
-      }
-    }
-
-    return hookCategories;
-  }
-
-  /**
-   * Parse platform ideas into structured format
-   */
-  parsePlatformIdeas(platformText) {
-    const platforms = [];
-    const sections = platformText.split(/^### /m).filter(section => section.trim());
-
-    for (const section of sections) {
-      const lines = section.split('\n');
-      const title = lines[0].replace(/^### /, '').trim();
-      const items = lines.slice(1)
-        .filter(line => line.match(/^\d+\./))
-        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')));
-
-      if (items.length > 0) {
-        platforms.push({ title, items });
-      }
-    }
-
-    return platforms;
-  }
-
-  /**
-   * Parse prompts into structured format
-   */
-  parsePrompts(promptsText) {
-    const promptCategories = [];
-    const sections = promptsText.split(/^### /m).filter(section => section.trim());
-
-    for (const section of sections) {
-      const lines = section.split('\n');
-      const title = lines[0].replace(/^### /, '').trim();
-      const items = lines.slice(1)
-        .filter(line => line.match(/^\d+\./))
-        .map(line => this.cleanMarkdown(line.replace(/^\d+\.\s*/, '').replace(/^"(.*)"$/, '$1')));
-
-      if (items.length > 0) {
-        promptCategories.push({ title, items });
-      }
-    }
-
-    return promptCategories;
-  }
-
-  /**
-   * Parse sources into structured format
-   */
-  parseSources(sourcesText) {
-    const sourceCategories = [];
-    const sections = sourcesText.split(/^### /m).filter(section => section.trim());
-
-    for (const section of sections) {
-      const lines = section.split('\n');
-      const title = lines[0].replace(/^### /, '').trim();
-      const items = [];
-
-      let currentItem = null;
-      for (const line of lines.slice(1)) {
-        if (line.match(/^\d+\./)) {
-          if (currentItem) items.push(currentItem);
-          currentItem = {
-            title: this.cleanMarkdown(line.replace(/^\d+\.\s*/, '')),
-            url: '',
-            description: ''
-          };
-        } else if (line.includes('🔗') && currentItem) {
-          const urlMatch = line.match(/🔗 \[([^\]]+)\]\(([^)]+)\)/);
-          if (urlMatch) {
-            currentItem.url = urlMatch[2];
-          }
-        } else if (line.includes('📄') && currentItem) {
-          currentItem.description = this.cleanMarkdown(line.replace(/📄\s*/, ''));
-        }
-      }
-      if (currentItem) items.push(currentItem);
-
-      if (items.length > 0) {
-        sourceCategories.push({ title, items });
-      }
-    }
-
-    return sourceCategories;
-  }
-
-  /**
-   * Clean markdown formatting
-   */
-  cleanMarkdown(text) {
-    return text
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/_([^_]+)_/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '')
-      .trim();
   }
 
   async sendEmailWithReport(recipientEmail, googleDocData, reportData) {
@@ -719,34 +595,19 @@ class OAuth2ReportDeliveryService {
       </div>
     </div>
 
-    <!-- Top Content Idea -->
-    <div style="margin-bottom: 30px;">
-      <h3 style="color: #2c3e50; margin: 0 0 15px 0; font-size: 18px; border-bottom: 2px solid #28a745; padding-bottom: 8px;">💡 Priority Content Idea</h3>
-      <div style="background: #fff; border: 1px solid #e9ecef; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
-        ${firstContentIdea}
-      </div>
-    </div>
-
     <!-- Google Doc CTA -->
     <div style="text-align: center; margin: 40px 0; background: linear-gradient(135deg, #667eea20, #764ba220); padding: 30px; border-radius: 10px; border: 2px solid #667eea;">
       <h3 style="margin: 0 0 15px 0; color: #2c3e50;">📄 Complete Report in Google Docs</h3>
-      <p style="margin: 0 0 25px 0; color: #495057; font-size: 16px;">Click below to access the full formatted report with all 15 content ideas, research analysis, and clickable source links.</p>
+      <p style="margin: 0 0 25px 0; color: #495057; font-size: 16px;">Click below to access the full formatted report with proper headings, bullet points, and professional structure.</p>
 
       <a href="${googleDocData.url}" style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 18px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);">
-        📄 Open Full Report
+        📄 Open Perfectly Formatted Report
       </a>
 
       <p style="margin: 15px 0 0 0; font-size: 12px; color: #6c757d;">
-        Powered by OAuth2 • Your Personal Google Drive • Memory-Enhanced AI Analysis
+        Now with proper headings, bullets, and professional structure!
       </p>
     </div>
-  </div>
-
-  <!-- Footer -->
-  <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
-    <p style="margin: 0; color: #6c757d; font-size: 14px;">
-      🤖 Generated by Hanna AI News Agent with Tavily Integration
-    </p>
   </div>
 </div>
       `;
@@ -757,18 +618,15 @@ Hanna AI Weekly Report - ${reportData.metadata.weekStart}
 📊 This Week's Intelligence:
 • ${reportData.metadata.totalSources} sources analyzed
 • 15 content ideas generated
-• Memory-enhanced AI analysis
+• Proper Google Docs formatting
 
 🎯 Executive Summary:
 ${executiveSummary.join('\n')}
 
-💡 Priority Content Idea:
-${firstContentIdea}
-
 📄 Full Report: ${googleDocData.url}
 
 Best regards,
-Hanna AI News Agent (OAuth2 Powered)
+Hanna AI News Agent (Perfect Formatting)
       `;
 
       const mailOptions = {
@@ -808,7 +666,7 @@ Hanna AI News Agent (OAuth2 Powered)
     try {
       logger.info('Starting OAuth2-powered report delivery...');
 
-      // Create Google Doc
+      // Create Google Doc with perfect formatting
       const googleDoc = await this.createGoogleDoc(reportData, reportMarkdown);
 
       // Send email

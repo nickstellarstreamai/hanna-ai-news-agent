@@ -2,6 +2,8 @@
 
 import { tavily } from '@tavily/core';
 import { CONTENT_PILLARS } from '../config/contentPillars.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 /**
  * Tavily Search Service for Hanna AI News Agent
@@ -14,12 +16,58 @@ import { CONTENT_PILLARS } from '../config/contentPillars.js';
  * - Time-filtered searches for recent content
  * - AI-optimized results with citations
  * - Cost-effective with 1000 free monthly searches
+ * - Search result caching to prevent credit waste during debugging
  */
 class TavilyService {
   constructor() {
     this.tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
     this.searches_used = 0;
     this.monthly_limit = 1000; // Free tier limit
+    this.cacheDir = './data/tavily-cache';
+  }
+
+  /**
+   * Get cache file path for today's searches
+   */
+  getCacheFilePath() {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    return path.join(this.cacheDir, `tavily-search-${today}.json`);
+  }
+
+  /**
+   * Load cached search results if they exist and are from today
+   */
+  async loadCachedResults() {
+    try {
+      await fs.mkdir(this.cacheDir, { recursive: true });
+      const cacheFile = this.getCacheFilePath();
+      const data = await fs.readFile(cacheFile, 'utf-8');
+      const cached = JSON.parse(data);
+      console.log(`📋 Loading cached search results from ${cacheFile}`);
+      console.log(`💰 Saved credits: Using cached results instead of ${cached.searchCount} new searches`);
+      return cached;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Save search results to cache for today
+   */
+  async saveCachedResults(results, searchCount) {
+    try {
+      await fs.mkdir(this.cacheDir, { recursive: true });
+      const cacheFile = this.getCacheFilePath();
+      const cacheData = {
+        timestamp: new Date().toISOString(),
+        searchCount,
+        results
+      };
+      await fs.writeFile(cacheFile, JSON.stringify(cacheData, null, 2));
+      console.log(`💾 Cached search results to ${cacheFile} (${searchCount} searches)`);
+    } catch (error) {
+      console.error('Warning: Failed to cache search results:', error.message);
+    }
   }
 
   /**
@@ -138,11 +186,19 @@ class TavilyService {
    * Search across all content pillars for comprehensive coverage
    */
   async searchAllPillars() {
+    // Check for cached results first
+    const cached = await this.loadCachedResults();
+    if (cached) {
+      return cached.results;
+    }
+
     const allResults = {};
     const pillars = Object.keys(this.generateSearchQueries());
 
     console.log('🚀 Starting comprehensive Tavily search across all content pillars...');
     console.log(`📊 Monthly usage: ${this.searches_used}/${this.monthly_limit} searches used`);
+
+    const searchStartCount = this.searches_used;
 
     for (const pillar of pillars) {
       console.log(`\n📍 Searching pillar: ${pillar}`);
@@ -152,6 +208,10 @@ class TavilyService {
     }
 
     console.log(`\n🎯 Search complete! Usage: ${this.searches_used}/${this.monthly_limit} searches used`);
+
+    // Cache the results to prevent credit waste during debugging
+    const searchesUsed = this.searches_used - searchStartCount;
+    await this.saveCachedResults(allResults, searchesUsed);
 
     return allResults;
   }
