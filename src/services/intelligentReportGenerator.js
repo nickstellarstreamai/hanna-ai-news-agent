@@ -7,6 +7,7 @@ import researchAgents from './researchAgents.js';
 import { TavilyService } from './tavilyService.js';
 import { ReportMemoryService } from './reportMemoryService.js';
 import oauth2ReportDelivery from './oauth2ReportDelivery.js';
+import githubDataStorage from './githubDataStorage.js';
 import { logger } from '../utils/logger.js';
 import AITimeout from '../utils/aiTimeout.js';
 import focusedAgents from './focusedAnalysisAgents.js';
@@ -43,6 +44,9 @@ class IntelligentReportGenerator {
     // Initialize memory service
     await this.memoryService.initialize();
 
+    // Initialize GitHub data storage
+    await githubDataStorage.initialize();
+
     this.initialized = true;
   }
 
@@ -62,6 +66,13 @@ class IntelligentReportGenerator {
       // Step 1: Gather research data from Tavily (replacing RSS/Reddit sources)
       logger.info('Step 1: Gathering research data from Tavily across all content pillars...');
       const tavilyData = await this.tavilyService.searchAllPillars();
+
+      // 🔥 CRITICAL: Save Tavily data to GitHub immediately
+      logger.info('💾 Step 1.1: Saving Tavily search results to GitHub...');
+      const githubTavilyResult = await githubDataStorage.saveTavilyResults(tavilyData, weekStartFormatted);
+      if (githubTavilyResult?.success) {
+        logger.info(`✅ Tavily data saved to GitHub: ${githubTavilyResult.url}`);
+      }
 
       // Step 2: Get trending topics for additional context
       logger.info('Step 1.5: Gathering trending topics...');
@@ -131,9 +142,23 @@ class IntelligentReportGenerator {
       // Step 8: Store report in memory system
       logger.info('Step 8: Storing report in memory system for future reference...');
       await this.memoryService.storeReport(report, formattedReport);
-      
+
+      // 🔥 CRITICAL: Save complete report data to GitHub
+      logger.info('💾 Step 8.1: Saving complete report data to GitHub...');
+      const githubReportResult = await githubDataStorage.saveReportData(report, weekStartFormatted);
+      if (githubReportResult?.success) {
+        logger.info(`✅ Report data saved to GitHub: ${githubReportResult.url}`);
+      }
+
+      // Create summary commit linking all data
+      if (githubTavilyResult?.success && githubReportResult?.success) {
+        logger.info('💾 Step 8.2: Creating GitHub summary commit...');
+        await githubDataStorage.createSummaryCommit(weekStartFormatted, githubTavilyResult, githubReportResult);
+      }
+
       logger.info(`Weekly report generated successfully with enhanced analysis and ${report.sources.length} sources`);
-      
+      logger.info(`📊 All research data preserved in GitHub for permanent access`);
+
       return savedReport;
       
     } catch (error) {

@@ -30,6 +30,11 @@ GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your_client_secret
 ```
 
+### 🔗 GitHub Integration (Critical for Data Storage)
+```
+GITHUB_TOKEN=your_github_personal_access_token
+```
+
 ### 📧 Email Configuration
 ```
 EMAIL_USER=your_gmail@gmail.com

@@ -8,6 +8,7 @@ import cron from 'node-cron';
 
 import database from './config/database.js';
 import intelligentReportGenerator from './services/intelligentReportGenerator.js';
+import githubDataStorage from './services/githubDataStorage.js';
 import slackService from './services/slackService.js';
 import { logger } from './utils/logger.js';
 
@@ -42,6 +43,7 @@ app.get('/health', async (req, res) => {
         anthropicAPI: process.env.ANTHROPIC_API_KEY ? 'configured' : 'missing',
         googleOAuth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing',
         emailService: process.env.EMAIL_USER ? 'configured' : 'missing',
+        githubStorage: process.env.GITHUB_TOKEN ? 'configured' : 'missing',
         slack: slackService.isEnabled() ? 'enabled' : 'disabled'
       },
       scheduling: {
