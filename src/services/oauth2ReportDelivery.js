@@ -24,9 +24,16 @@ class OAuth2ReportDeliveryService {
         'http://localhost:3000/auth/callback'
       );
 
-      // Load saved tokens
-      const tokenData = await fs.readFile('./data/google-oauth-token.json', 'utf8');
-      const tokens = JSON.parse(tokenData);
+      // Load saved tokens - try environment variable first, then file
+      let tokens;
+      if (process.env.GOOGLE_OAUTH_TOKEN) {
+        tokens = JSON.parse(process.env.GOOGLE_OAUTH_TOKEN);
+        logger.info('Loaded OAuth tokens from environment variable');
+      } else {
+        const tokenData = await fs.readFile('./data/google-oauth-token.json', 'utf8');
+        tokens = JSON.parse(tokenData);
+        logger.info('Loaded OAuth tokens from file');
+      }
 
       this.oauth2Client.setCredentials(tokens);
 
@@ -36,8 +43,14 @@ class OAuth2ReportDeliveryService {
           tokens.refresh_token = newTokens.refresh_token;
         }
         tokens.access_token = newTokens.access_token;
-        await fs.writeFile('./data/google-oauth-token.json', JSON.stringify(tokens, null, 2));
-        logger.info('OAuth2 tokens refreshed');
+
+        // In production, we can't write to files, so just log the refresh
+        if (process.env.NODE_ENV === 'production') {
+          logger.info('OAuth2 tokens refreshed (production mode)');
+        } else {
+          await fs.writeFile('./data/google-oauth-token.json', JSON.stringify(tokens, null, 2));
+          logger.info('OAuth2 tokens refreshed and saved to file');
+        }
       });
 
       this.docs = google.docs({ version: 'v1', auth: this.oauth2Client });
