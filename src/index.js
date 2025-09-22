@@ -96,9 +96,16 @@ app.post('/api/generate-report', async (req, res) => {
     res.json({
       success: true,
       message: 'Report generated successfully',
-      googleDoc: report.googleDoc?.url,
+      googleDoc: report.googleDoc?.url || 'Google Doc URL not found',
+      googleDocId: report.googleDoc?.documentId || 'Document ID not found',
+      folderId: report.googleDoc?.folderId || 'Folder ID not found',
       emailSent: report.email?.success || false,
       metadata: report.data?.metadata,
+      deliveryDetails: {
+        googleDocCreated: !!report.googleDoc,
+        emailDelivered: !!report.email,
+        fullDeliveryResult: report.delivery || 'No delivery details'
+      },
       timestamp: new Date().toISOString()
     });
 
@@ -109,7 +116,43 @@ app.post('/api/generate-report', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message,
+      stack: error.stack,
       timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Debug endpoint to search for recent documents
+app.get('/api/debug/recent-docs', async (req, res) => {
+  try {
+    // Import the OAuth service to search for documents
+    const oauth2Service = (await import('./services/oauth2ReportDelivery.js')).default;
+    await oauth2Service.initialize();
+
+    // Search for recent documents
+    const recentDocs = await oauth2Service.drive.files.list({
+      q: "name contains 'Hanna' and mimeType='application/vnd.google-apps.document'",
+      orderBy: 'createdTime desc',
+      pageSize: 10,
+      fields: 'files(id, name, createdTime, webViewLink, parents)'
+    });
+
+    // Also search for the folder
+    const folders = await oauth2Service.drive.files.list({
+      q: "name contains 'Hanna' and mimeType='application/vnd.google-apps.folder'",
+      fields: 'files(id, name, createdTime)'
+    });
+
+    res.json({
+      recentDocuments: recentDocs.data.files,
+      folders: folders.data.files,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack
     });
   }
 });
