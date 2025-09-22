@@ -78,11 +78,20 @@ class IntelligentReportGenerator {
       logger.info('Step 1.5: Gathering trending topics...');
       const trendingData = await this.tavilyService.searchTrendingTopics();
 
-      // Step 3: Combine with legacy research agents if needed
-      logger.info('Step 2: Gathering supplementary data from research agents...');
-      const legacyResearchData = await researchAgents.generateWeeklyResearch();
+      // 🔥 TEMPORARILY DISABLED: Legacy research agents hanging in production
+      // These Task-based agents are causing the workflow to hang indefinitely
+      logger.info('Step 2: Skipping legacy research agents (Task agents hanging in production)...');
+      const legacyResearchData = {
+        reddit: [],
+        rss: [],
+        trends: [],
+        competitors: [],
+        sources: [],
+        timestamp: new Date().toISOString(),
+        note: 'Legacy agents disabled due to Task tool hanging in Railway production'
+      };
 
-      // Step 4: Merge all data sources
+      // Step 4: Merge all data sources (primarily Tavily + trending)
       const combinedResearchData = this.combineResearchData(tavilyData, trendingData, legacyResearchData);
 
       // ELITE CONTEXT ENGINEERING: Use focused sub-agents (R&D Framework - DELEGATE)
