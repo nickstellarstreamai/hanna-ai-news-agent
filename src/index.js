@@ -43,7 +43,7 @@ app.get('/health', async (req, res) => {
         anthropicAPI: process.env.ANTHROPIC_API_KEY ? 'configured' : 'missing',
         googleOAuth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing',
         emailService: process.env.EMAIL_USER ? 'configured' : 'missing',
-        githubStorage: process.env.GITHUB_TOKEN ? 'configured' : 'missing',
+        githubStorage: process.env.GITHUB_TOKEN ? 'configured' : 'MISSING_TOKEN',
         slack: slackService.isEnabled() ? 'enabled' : 'disabled'
       },
       scheduling: {
@@ -138,6 +138,74 @@ async function processReportAsync() {
     logger.error('❌ Background report generation failed:', error);
   }
 }
+
+// Diagnostic endpoint to test individual components
+app.get('/api/diagnostic', async (req, res) => {
+  try {
+    const results = {
+      timestamp: new Date().toISOString(),
+      tests: {}
+    };
+
+    // Test 1: Anthropic API
+    try {
+      const Anthropic = (await import('@anthropic-ai/sdk')).default;
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const testResponse = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 100,
+        messages: [{ role: 'user', content: 'Say "Claude test successful"' }]
+      });
+      results.tests.anthropic = {
+        status: 'SUCCESS',
+        response: testResponse.content[0].text
+      };
+    } catch (error) {
+      results.tests.anthropic = {
+        status: 'FAILED',
+        error: error.message
+      };
+    }
+
+    // Test 2: GitHub Storage
+    try {
+      await githubDataStorage.initialize();
+      const stats = githubDataStorage.getStats();
+      results.tests.github = {
+        status: stats.initialized ? 'SUCCESS' : 'FAILED',
+        stats
+      };
+    } catch (error) {
+      results.tests.github = {
+        status: 'FAILED',
+        error: error.message
+      };
+    }
+
+    // Test 3: Tavily Service
+    try {
+      const { TavilyService } = await import('./services/tavilyService.js');
+      const tavilyService = new TavilyService();
+      results.tests.tavily = {
+        status: 'INITIALIZED',
+        searches_used: tavilyService.searches_used,
+        monthly_limit: tavilyService.monthly_limit
+      };
+    } catch (error) {
+      results.tests.tavily = {
+        status: 'FAILED',
+        error: error.message
+      };
+    }
+
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
 
 // Debug endpoint to search for recent documents
 app.get('/api/debug/recent-docs', async (req, res) => {
