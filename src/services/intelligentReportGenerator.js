@@ -112,9 +112,12 @@ class IntelligentReportGenerator {
         keyStories.map(story => story.title)
       );
 
-      // Simple content ideas and watchlist (no heavy AI needed)
-      const contentIdeas = 'Strategic content opportunities identified from focused analysis.';
-      const watchlist = 'Monitor identified trends for strategic content development.';
+      // 🔥 HIGH-QUALITY CONTENT GENERATION: Replace hardcoded content with real AI analysis
+      logger.info('🧠 Generating strategic content ideas with Claude 3.5 Sonnet...');
+      const contentIdeas = await focusedAgents.generateContentIdeas(analysis, keyStories);
+
+      logger.info('🧠 Generating strategic watchlist with Claude 3.5 Sonnet...');
+      const watchlist = await focusedAgents.generateStrategicWatchlist(analysis, combinedResearchData);
       
       // Step 9: Compile final report
       const report = {
