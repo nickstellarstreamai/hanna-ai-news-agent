@@ -83,12 +83,17 @@ OUTPUT FORMAT:
 Deliver 5-7 paragraphs of substantial strategic insights, each 3-4 sentences long. Focus on WHY these insights matter and HOW they translate to content opportunities.`;
 
     try {
+      logger.info(`🔍 DIAGNOSTIC: About to call Claude 3.5 Sonnet with ${prompt.length} character prompt...`);
+
       const result = await this.callAI(prompt, 3000, 0.2); // Much higher token limit, lower temperature for strategic analysis
+
+      logger.info(`🔍 DIAGNOSTIC: Claude API returned ${result ? result.length : 0} characters`);
 
       if (!result || result.length < 200) {
         throw new Error('Insufficient analysis quality');
       }
 
+      logger.info('✅ DIAGNOSTIC: High-quality research synthesis completed successfully');
       return result;
     } catch (error) {
       logger.error('HIGH-QUALITY research synthesis failed:', error);
@@ -431,27 +436,52 @@ OUTPUT: Organized watchlist with monitoring rationale for each item.`;
     if (!combinedResearchData) return 'No research data available';
 
     let formatted = '';
+    let totalCharCount = 0;
+    const MAX_CONTENT_LENGTH = 15000; // Prevent Claude context overflow
+
+    logger.info('🔍 DIAGNOSTIC: Formatting research data for Claude analysis...');
 
     Object.entries(combinedResearchData).forEach(([pillar, results]) => {
+      if (totalCharCount >= MAX_CONTENT_LENGTH) return; // Stop if getting too large
+
       formatted += `\n=== ${pillar.toUpperCase()} ===\n`;
+      totalCharCount += pillar.length + 20;
 
       if (Array.isArray(results)) {
         results.forEach((result, index) => {
+          if (totalCharCount >= MAX_CONTENT_LENGTH) return; // Stop if getting too large
+
           if (result.results && result.results.length > 0) {
             formatted += `\nQuery: ${result.query}\n`;
+            totalCharCount += result.query.length + 10;
+
             result.results.forEach((item, itemIndex) => {
+              if (totalCharCount >= MAX_CONTENT_LENGTH) return; // Stop if getting too large
+
               formatted += `${index + 1}.${itemIndex + 1} ${item.title}\n`;
               formatted += `URL: ${item.url}\n`;
-              formatted += `Content: ${(item.content || '').substring(0, 500)}...\n`;
+
+              // 🔥 CRITICAL FIX: Limit content to prevent Claude API hangs
+              const truncatedContent = (item.content || '').substring(0, 200); // Reduced from 500 to 200
+              formatted += `Content: ${truncatedContent}...\n`;
+
               if (item.published_date) {
                 formatted += `Published: ${item.published_date}\n`;
               }
               formatted += '---\n';
+
+              totalCharCount += item.title.length + item.url.length + truncatedContent.length + 50;
             });
           }
         });
       }
     });
+
+    logger.info(`🔍 DIAGNOSTIC: Research data formatted - ${totalCharCount} characters, ${Math.round(totalCharCount/4)} estimated tokens`);
+
+    if (totalCharCount >= MAX_CONTENT_LENGTH) {
+      logger.warn('⚠️ DIAGNOSTIC: Research data truncated to prevent Claude API hangs');
+    }
 
     return formatted;
   }
