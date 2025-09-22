@@ -118,62 +118,101 @@ app.post('/api/generate-report', async (req, res) => {
   }
 });
 
-// Enhanced background processing function with detailed logging
+// COMPREHENSIVE DIAGNOSTICS: Enhanced background processing with deep monitoring
 async function processReportAsync() {
   const startTime = Date.now();
   let currentStep = 'INITIALIZATION';
+  let heartbeatInterval;
 
   try {
-    logger.info('🚀 Starting background report generation with enhanced quality system...');
+    logger.info('🚀 DIAGNOSTIC MODE: Starting background report generation with comprehensive logging...');
     logger.info('📊 Expected duration: 3-4 minutes with Claude 3.5 Sonnet');
+    logger.info('🔍 Memory at start:', process.memoryUsage());
 
-    currentStep = 'REPORT_GENERATION';
-    logger.info('🔄 Step 1: Initializing intelligent report generator...');
+    // 🔥 HEARTBEAT MONITORING: Log every 10 seconds to track where it dies
+    heartbeatInterval = setInterval(() => {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const memory = process.memoryUsage();
+      logger.info(`💓 HEARTBEAT [${elapsed}s]: Step=${currentStep}, Memory=${Math.round(memory.heapUsed / 1024 / 1024)}MB`);
+    }, 10000);
+
+    currentStep = 'REPORT_GENERATION_START';
+    logger.info('🔄 DIAGNOSTIC: About to call intelligentReportGenerator.generateWeeklyReport()...');
+    logger.info('🔍 Memory before report gen:', process.memoryUsage());
 
     const report = await intelligentReportGenerator.generateWeeklyReport();
 
+    currentStep = 'REPORT_GENERATION_COMPLETE';
+    logger.info('🔄 DIAGNOSTIC: intelligentReportGenerator.generateWeeklyReport() returned');
+    logger.info('🔍 Memory after report gen:', process.memoryUsage());
+
     currentStep = 'VALIDATION';
-    logger.info('🔄 Step 2: Validating report generation results...');
+    logger.info('🔄 DIAGNOSTIC: Validating report structure...');
 
     if (!report) {
       throw new Error('Report generation returned null/undefined');
     }
 
-    logger.info(`📊 Report metadata: ${JSON.stringify(report.data?.metadata || {})}`);
+    logger.info('✅ DIAGNOSTIC: Report object exists, analyzing structure...');
+    logger.info(`📊 Report keys: ${Object.keys(report).join(', ')}`);
+    logger.info(`📊 Report data keys: ${Object.keys(report.data || {}).join(', ')}`);
+    logger.info(`📊 Report metadata: ${JSON.stringify(report.data?.metadata || 'NO_METADATA')}`);
 
     const endTime = Date.now();
     const duration = Math.round((endTime - startTime) / 1000);
 
     currentStep = 'COMPLETION';
-    logger.info(`✅ Background report generation completed in ${duration} seconds`);
-    logger.info(`📄 Google Doc: ${report.googleDoc?.url || 'No URL found'}`);
-    logger.info(`📧 Email: ${report.email?.success ? 'Sent successfully' : 'Failed or not attempted'}`);
-    logger.info(`💾 GitHub: ${report.githubStorage ? 'Data preserved' : 'Storage status unknown'}`);
-    logger.info(`📈 Quality: Enhanced Claude 3.5 Sonnet analysis completed`);
+    logger.info(`✅ DIAGNOSTIC: Background report generation SUCCESSFUL in ${duration} seconds`);
+    logger.info(`📄 Google Doc URL: ${report.googleDoc?.url || 'NO_GOOGLE_DOC_URL'}`);
+    logger.info(`📄 Google Doc ID: ${report.googleDoc?.documentId || 'NO_GOOGLE_DOC_ID'}`);
+    logger.info(`📧 Email status: ${report.email?.success ? 'SENT_SUCCESSFULLY' : 'EMAIL_FAILED_OR_NOT_ATTEMPTED'}`);
+    logger.info(`💾 GitHub storage: ${report.githubStorage ? 'DATA_PRESERVED' : 'GITHUB_STORAGE_UNKNOWN'}`);
+    logger.info(`📈 Final memory usage:`, process.memoryUsage());
+    logger.info('🎉 DIAGNOSTIC: FULL WORKFLOW COMPLETED SUCCESSFULLY');
 
   } catch (error) {
     const duration = Math.round((Date.now() - startTime) / 1000);
-    logger.error(`❌ CRITICAL: Background report generation failed at step: ${currentStep}`);
+    logger.error('🚨 CRITICAL ERROR DETECTED:');
+    logger.error(`❌ Failed at step: ${currentStep}`);
     logger.error(`❌ Duration before failure: ${duration} seconds`);
-    logger.error(`❌ Error details:`, {
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 10).join('\n'), // First 10 lines of stack
-      name: error.name,
-      step: currentStep
-    });
+    logger.error(`❌ Error name: ${error.name}`);
+    logger.error(`❌ Error message: ${error.message}`);
 
-    // Log additional context for debugging
-    logger.error('❌ System context at failure:', {
+    // Full stack trace
+    if (error.stack) {
+      logger.error(`❌ Full stack trace:`);
+      error.stack.split('\n').forEach((line, index) => {
+        logger.error(`   ${index}: ${line}`);
+      });
+    }
+
+    // System diagnostics
+    logger.error('❌ System diagnostics at failure:', {
       nodeVersion: process.version,
       platform: process.platform,
+      pid: process.pid,
+      uptime: Math.round(process.uptime()),
       memoryUsage: process.memoryUsage(),
+      cpuUsage: process.cpuUsage(),
       env: {
+        NODE_ENV: process.env.NODE_ENV,
         hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
         hasTavilyKey: !!process.env.TAVILY_API_KEY,
-        hasGitHubToken: !!process.env.GITHUB_TOKEN
+        hasGitHubToken: !!process.env.GITHUB_TOKEN,
+        hasGoogleOAuth: !!process.env.GOOGLE_CLIENT_ID,
+        hasEmailConfig: !!process.env.EMAIL_USER
       }
     });
+
+    logger.error('🚨 END CRITICAL ERROR REPORT');
+
+  } finally {
+    // Clear heartbeat monitoring
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      logger.info('🔄 DIAGNOSTIC: Heartbeat monitoring stopped');
+    }
   }
 }
 
