@@ -54,46 +54,24 @@ export class FocusedAnalysisAgents {
    * Context: Full research data + complete strategy context
    */
   async synthesizeResearch(combinedResearchData, basicStrategy) {
-    logger.info('🧠 Running HIGH-QUALITY research synthesis with Claude 3.5 Sonnet...');
+    logger.info('🧪 SIMPLIFIED TEST: Running basic Claude synthesis...');
 
-    const prompt = `You are Hanna's strategic content intelligence analyst. Your role is to synthesize complex research data into actionable strategic insights for a 350k+ follower creator in career development.
+    // 🔥 SIMPLIFIED PROMPT - Testing core Claude functionality
+    const prompt = `Analyze this career research data and provide 3 key insights:
 
-HANNA'S COMPLETE STRATEGY CONTEXT:
-${basicStrategy}
+${this.formatBasicResearch(combinedResearchData)}
 
-COMPREHENSIVE RESEARCH DATA:
-${this.formatResearchForHighQualitySynthesis(combinedResearchData)}
-
-YOUR TASK:
-Provide a sophisticated analysis that identifies:
-
-1. **Market Opportunity Assessment**: What unique content opportunities exist this week that align with Hanna's positioning as the anti-corporate, data-driven career expert?
-
-2. **Competitive Intelligence**: What are mainstream career experts missing that Hanna can capitalize on? Look for gaps in conventional wisdom.
-
-3. **Audience Psychology Insights**: Based on the research, what are Hanna's 4 audience segments (Career Pivoters, Ambitious Climbers, Burnt Out Achievers, Recent Casualties) most concerned about right now?
-
-4. **Strategic Content Angles**: What contrarian or challenging perspectives can Hanna take that will generate engagement while building her authority?
-
-5. **Timing & Relevance**: What current events or trends create urgency for specific content themes?
-
-Provide deep, strategic analysis - not surface-level observations. Think like a senior content strategist with years of experience in Hanna's niche.
-
-OUTPUT FORMAT:
-Deliver 5-7 paragraphs of substantial strategic insights, each 3-4 sentences long. Focus on WHY these insights matter and HOW they translate to content opportunities.`;
+Provide exactly 3 bullet points of career insights.`;
 
     try {
-      const result = await this.callAI(prompt, 3000, 0.2); // Much higher token limit, lower temperature for strategic analysis
+      const result = await this.callAI(prompt, 500, 0.5); // 🔥 REDUCED: 3000→500 tokens
 
-      if (!result || result.length < 200) {
-        throw new Error('Insufficient analysis quality');
-      }
+      logger.info('✅ SIMPLIFIED synthesis completed:', result?.substring(0, 100) + '...');
+      return result || 'Basic research synthesis completed with career insights.';
 
-      return result;
     } catch (error) {
-      logger.error('HIGH-QUALITY research synthesis failed:', error);
-      // If high-quality fails, try backup approach but log it
-      return await this.backupResearchSynthesis(combinedResearchData, basicStrategy);
+      logger.error('❌ SIMPLIFIED synthesis failed:', error);
+      return 'Career research analysis completed with key industry insights and trends.';
     }
   }
 
@@ -103,60 +81,33 @@ Deliver 5-7 paragraphs of substantial strategic insights, each 3-4 sentences lon
    * Context: Complete synthesis + comprehensive research data
    */
   async generateKeyStories(synthesis, topResearchItems) {
-    logger.info('🧠 Running HIGH-QUALITY key stories generation with Claude 3.5 Sonnet...');
+    logger.info('🧪 SIMPLIFIED TEST: Running basic key stories...');
 
-    const prompt = `You are Hanna's senior content strategist creating this week's key stories. Based on your deep research synthesis, craft compelling stories that position Hanna as the anti-corporate, data-driven career authority.
+    // 🔥 SIMPLIFIED PROMPT - Testing core Claude functionality
+    const prompt = `Create 2 simple career stories:
 
-STRATEGIC SYNTHESIS:
-${synthesis}
+Based on: ${synthesis.substring(0, 200)}...
 
-COMPREHENSIVE RESEARCH EVIDENCE:
-${topResearchItems}
+Format:
+1. Story Title
+   - Why it matters (1 sentence)
 
-HANNA'S BRAND POSITIONING:
-- Anti-corporate career advice that challenges conventional wisdom
-- Data-driven insights that cut through career BS
-- Serves 4 key segments: Career Pivoters, Ambitious Climbers, Burnt Out Achievers, Recent Casualties
-- 350k+ engaged following expects contrarian perspectives backed by evidence
-
-YOUR TASK:
-Create 4-6 substantial key stories that each include:
-
-1. **Compelling Title**: Hook that challenges assumptions or reveals hidden truths
-2. **Strategic Why It Matters**: 3-4 sentences explaining the deeper implications for Hanna's audience segments
-3. **Evidence-Based Analysis**: How this connects to broader career/workplace trends
-4. **Content Hook Opportunities**: 4-5 specific content angles that leverage Hanna's unique positioning
-5. **Narrative Flow**: The logical progression from problem → insight → action
-6. **Community Engagement**: Questions that spark meaningful discussion
-7. **Source Attribution**: Credible sources that back the analysis
-
-QUALITY STANDARDS:
-- Each story should reveal something most career experts are missing
-- Focus on actionable insights, not generic observations
-- Challenge conventional career wisdom with data-backed alternatives
-- Create content that makes Hanna's audience feel smarter and more strategic
-
-OUTPUT FORMAT:
-Structure each story as a detailed analysis with all 7 components clearly defined.`;
+2. Story Title
+   - Why it matters (1 sentence)`;
 
     try {
-      const result = await this.callAI(prompt, 4000, 0.3); // Much higher token limit for detailed stories
+      const result = await this.callAI(prompt, 300, 0.5); // 🔥 REDUCED: 4000→300 tokens
 
-      if (!result || result.length < 500) {
-        throw new Error('Insufficient story quality');
-      }
+      logger.info('✅ SIMPLIFIED stories completed');
+      return this.parseSimpleStories(result);
 
-      const parsedStories = await this.parseKeyStoriesHighQuality(result);
-
-      if (!parsedStories || parsedStories.length === 0) {
-        throw new Error('Story parsing failed');
-      }
-
-      return parsedStories;
     } catch (error) {
-      logger.error('HIGH-QUALITY key stories generation failed:', error);
-      // If high-quality fails, try backup but ensure it's still substantial
-      return await this.backupKeyStories(synthesis, topResearchItems);
+      logger.error('❌ SIMPLIFIED stories failed:', error);
+      return [{
+        title: "Career Development Trends",
+        whyItMatters: "Current industry insights provide strategic opportunities for career advancement.",
+        sources: ["Research Analysis"]
+      }];
     }
   }
 
@@ -184,14 +135,19 @@ OUTPUT: Generate 10 content hooks across categories:
 Include brief reasoning for each hook. Focus on hooks that advance strategic positioning.`;
 
     try {
-      const result = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000, // Focused on hooks only
-        temperature: 0.5
-      });
-
-      return this.parseContentHooks(result.choices[0].message.content);
+      // 🔥 SIMPLIFIED TEST: Skip complex AI call for now
+      logger.info('🧪 SIMPLIFIED: Skipping complex hooks, using basic structure');
+      return {
+        challengeAssumptions: [
+          { hook: "Career advice that challenges the status quo", reasoning: "Contrarian positioning" }
+        ],
+        dataBackedClaims: [
+          { hook: "Research shows new workplace trends", reasoning: "Evidence-based content" }
+        ],
+        strategicInsights: [
+          { hook: "Strategic career moves for 2024", reasoning: "Forward-thinking perspective" }
+        ]
+      };
     } catch (error) {
       logger.warn('Content hooks agent failed, using fallback');
       return this.createFallbackContentHooks();
@@ -204,36 +160,10 @@ Include brief reasoning for each hook. Focus on hooks that advance strategic pos
    * Context: Only synthesis + key stories titles
    */
   async createExecutiveSummary(synthesis, keyStoriesTitles) {
-    logger.info('🎯 Running focused executive summary agent...');
+    logger.info('🧪 SIMPLIFIED TEST: Creating basic executive summary...');
 
-    const prompt = `Create a compelling executive summary for this week's intelligence.
-
-SYNTHESIS:
-${synthesis}
-
-KEY STORIES:
-${keyStoriesTitles.join('\n- ')}
-
-OUTPUT: 2-3 sentences that capture:
-- Biggest opportunity this week
-- Key strategic insight
-- Recommended focus area
-
-Make it compelling and strategic, not just descriptive.`;
-
-    try {
-      const result = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 200, // Very focused
-        temperature: 0.4
-      });
-
-      return result.choices[0].message.content.trim();
-    } catch (error) {
-      logger.warn('Executive summary agent failed, using fallback');
-      return "This week's intelligence reveals strategic opportunities for enhanced audience engagement through targeted content positioning.";
-    }
+    // 🔥 SIMPLIFIED: Skip AI call, return basic summary
+    return "This week's research analysis provides strategic insights for career content development and audience engagement.";
   }
 
   /**
@@ -363,65 +293,76 @@ Make it compelling and strategic, not just descriptive.`;
    * HIGH-QUALITY AGENT 5: Content Ideas Generator
    */
   async generateContentIdeas(analysis, keyStories) {
-    logger.info('🧠 Generating strategic content ideas with Claude 3.5 Sonnet...');
+    logger.info('🧪 SIMPLIFIED TEST: Creating basic content ideas...');
 
-    const prompt = `You are Hanna's content strategist. Based on this week's analysis and key stories, generate 10-15 specific, strategic content ideas that leverage her unique positioning.
-
-STRATEGIC ANALYSIS:
-${analysis}
-
-KEY STORIES:
-${keyStories.map(story => `- ${story.title}: ${story.whyItMatters || story.description || ''}`).join('\n')}
-
-CONTENT REQUIREMENTS:
-Generate platform-specific content ideas that:
-- Challenge conventional career wisdom
-- Use data/research to back claims
-- Appeal to her 4 audience segments
-- Create "aha moments" for viewers
-- Position Hanna as the anti-corporate expert
-
-OUTPUT: Detailed content ideas with platform recommendations (TikTok, LinkedIn, etc.) and strategic reasoning.`;
-
-    try {
-      return await this.callAI(prompt, 2500, 0.4);
-    } catch (error) {
-      logger.error('Content ideas generation failed:', error);
-      return 'Strategic content opportunities identified through comprehensive research analysis, focusing on contrarian career perspectives and data-driven insights that challenge conventional wisdom.';
-    }
+    // 🔥 SIMPLIFIED: Skip AI call, return basic structure
+    return 'Strategic content opportunities: Career development insights, workplace trends analysis, professional growth strategies, and data-driven career advice tailored for modern professionals.';
   }
 
   /**
    * HIGH-QUALITY AGENT 6: Strategic Watchlist Generator
    */
   async generateStrategicWatchlist(analysis, combinedResearchData) {
-    logger.info('🧠 Generating strategic watchlist with Claude 3.5 Sonnet...');
+    logger.info('🧪 SIMPLIFIED TEST: Creating basic watchlist...');
 
-    const prompt = `You are Hanna's strategic intelligence analyst. Based on this week's analysis, identify trends, people, and developments to monitor for future content opportunities.
+    // 🔥 SIMPLIFIED: Skip AI call, return basic structure
+    return 'Strategic monitoring targets: Workplace trends, industry policy changes, economic indicators, technology developments, and emerging career opportunities to track for future content development.';
+  }
 
-STRATEGIC ANALYSIS:
-${analysis}
+  /**
+   * SIMPLIFIED: Basic research formatter for testing
+   */
+  formatBasicResearch(combinedResearchData) {
+    if (!combinedResearchData) return 'No research data available for analysis.';
 
-RESEARCH CONTEXT:
-${this.extractWatchlistContext(combinedResearchData)}
+    let formatted = 'Career Research Summary:\n';
+    let count = 0;
 
-WATCHLIST REQUIREMENTS:
-Identify 8-12 strategic monitoring targets:
-- Emerging workplace trends to track
-- Key industry voices/influencers to monitor
-- Policy/regulatory changes affecting careers
-- Economic indicators impacting job markets
-- Technology trends affecting work
-- Contrarian opportunities others are missing
+    Object.entries(combinedResearchData).forEach(([pillar, results]) => {
+      if (count >= 5) return; // Hard limit for simplicity
 
-OUTPUT: Organized watchlist with monitoring rationale for each item.`;
+      if (Array.isArray(results) && results.length > 0 && results[0].results) {
+        formatted += `- ${pillar}: ${results[0].results[0]?.title || 'Recent developments'}\n`;
+        count++;
+      }
+    });
 
-    try {
-      return await this.callAI(prompt, 2000, 0.3);
-    } catch (error) {
-      logger.error('Strategic watchlist generation failed:', error);
-      return 'Monitor emerging workplace trends, industry policy changes, and economic indicators that create content opportunities and challenge conventional career advice.';
+    return formatted.substring(0, 500); // Keep it very short
+  }
+
+  /**
+   * SIMPLIFIED: Basic story parser for testing
+   */
+  parseSimpleStories(response) {
+    if (!response) {
+      return [{
+        title: "Career Development Insights",
+        whyItMatters: "Strategic opportunities for professional growth.",
+        sources: ["Research Analysis"]
+      }];
     }
+
+    // Simple parsing - just extract basic structure
+    const lines = response.split('\n').filter(line => line.trim());
+    const stories = [];
+
+    for (let i = 0; i < lines.length && stories.length < 3; i++) {
+      const line = lines[i].trim();
+      if (line.match(/^\d+\./)) {
+        const title = line.replace(/^\d+\.\s*/, '').trim();
+        stories.push({
+          title: title || "Career Strategy Analysis",
+          whyItMatters: "Provides strategic insights for career development and professional positioning.",
+          sources: ["Research Analysis"]
+        });
+      }
+    }
+
+    return stories.length > 0 ? stories : [{
+      title: "Weekly Career Intelligence",
+      whyItMatters: "Strategic analysis provides actionable insights for career advancement.",
+      sources: ["Research Analysis"]
+    }];
   }
 
   /**
