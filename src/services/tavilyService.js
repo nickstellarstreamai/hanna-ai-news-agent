@@ -183,7 +183,7 @@ class TavilyService {
   }
 
   /**
-   * Search across all content pillars for comprehensive coverage
+   * Search across all content pillars for comprehensive coverage (OPTIMIZED)
    */
   async searchAllPillars() {
     // Check for cached results first
@@ -195,25 +195,102 @@ class TavilyService {
     const allResults = {};
     const pillars = Object.keys(this.generateSearchQueries());
 
-    console.log('🚀 Starting comprehensive Tavily search across all content pillars...');
+    console.log('🚀 Starting OPTIMIZED Tavily search across all content pillars...');
     console.log(`📊 Monthly usage: ${this.searches_used}/${this.monthly_limit} searches used`);
 
     const searchStartCount = this.searches_used;
 
-    for (const pillar of pillars) {
-      console.log(`\n📍 Searching pillar: ${pillar}`);
-      allResults[pillar] = await this.searchByContentPillar(pillar, 2); // 2 results per query to stay within limits
+    // 🔥 OPTIMIZATION 1: Parallel processing instead of sequential
+    const pillarPromises = pillars.map(async (pillar) => {
+      console.log(`📍 Starting parallel search: ${pillar}`);
+      const results = await this.searchByContentPillarOptimized(pillar, 1); // Only 1 result per query for speed
+      console.log(`✅ Completed ${pillar}: ${results.reduce((sum, item) => sum + item.results.length, 0)} results found`);
+      return { pillar, results };
+    });
 
-      console.log(`✅ Completed ${pillar}: ${allResults[pillar].reduce((sum, item) => sum + item.results.length, 0)} results found`);
-    }
+    // Wait for all pillars to complete in parallel
+    const pillarResults = await Promise.all(pillarPromises);
 
-    console.log(`\n🎯 Search complete! Usage: ${this.searches_used}/${this.monthly_limit} searches used`);
+    // Organize results
+    pillarResults.forEach(({ pillar, results }) => {
+      allResults[pillar] = results;
+    });
+
+    console.log(`\n🎯 OPTIMIZED search complete! Usage: ${this.searches_used}/${this.monthly_limit} searches used`);
 
     // Cache the results to prevent credit waste during debugging
     const searchesUsed = this.searches_used - searchStartCount;
     await this.saveCachedResults(allResults, searchesUsed);
 
     return allResults;
+  }
+
+  /**
+   * Optimized pillar search with fewer queries and faster processing
+   */
+  async searchByContentPillarOptimized(pillarName, maxResultsPerQuery = 1) {
+    const queries = this.generateSearchQueries();
+
+    if (!queries[pillarName]) {
+      throw new Error(`Unknown content pillar: ${pillarName}`);
+    }
+
+    // 🔥 OPTIMIZATION 2: Reduce queries from 5 to 2 per pillar for speed
+    const pillarQueries = queries[pillarName].slice(0, 2); // Only take first 2 queries
+    const results = [];
+
+    // 🔥 OPTIMIZATION 3: Parallel query processing within pillar
+    const queryPromises = pillarQueries.map(async (query) => {
+      if (this.searches_used >= this.monthly_limit) {
+        console.warn('⚠️  Tavily monthly search limit reached');
+        return null;
+      }
+
+      try {
+        console.log(`🔍 Fast search: ${query}`);
+
+        const response = await this.tvly.search(query, {
+          search_depth: 'basic', // 🔥 OPTIMIZATION 4: Use basic instead of advanced for speed
+          max_results: maxResultsPerQuery,
+          include_domains: [
+            'harvard.edu', 'linkedin.com', 'hbr.org', 'forbes.com',
+            'wsj.com', 'nytimes.com', 'fastcompany.com'
+          ],
+          days: 30
+        });
+
+        this.searches_used++;
+
+        return {
+          query,
+          pillar: pillarName,
+          results: response.results || [],
+          answer: response.answer || null,
+          search_metadata: {
+            timestamp: new Date().toISOString(),
+            search_depth: 'basic',
+            results_count: response.results ? response.results.length : 0
+          }
+        };
+
+      } catch (error) {
+        console.error(`❌ Error searching for "${query}":`, error.message);
+        return null;
+      }
+    });
+
+    // Wait for all queries in this pillar to complete
+    const queryResults = await Promise.all(queryPromises);
+
+    // Filter out null results and add to main results
+    queryResults.filter(result => result !== null).forEach(result => {
+      results.push(result);
+    });
+
+    // 🔥 OPTIMIZATION 5: Reduce wait time between requests
+    await new Promise(resolve => setTimeout(resolve, 200)); // Reduced from 1000ms to 200ms
+
+    return results;
   }
 
   /**
