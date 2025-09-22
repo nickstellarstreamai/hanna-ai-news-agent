@@ -14,11 +14,17 @@ class EnhancedOAuth2ReportDeliveryService {
   async initialize() {
     if (this.oauth2Client) return;
 
-    const tokenPath = './data/google-oauth-token.json';
-
     try {
-      const tokenData = await fs.readFile(tokenPath, 'utf8');
-      const tokens = JSON.parse(tokenData);
+      // Load tokens from environment variable first, then file
+      let tokens;
+      if (process.env.GOOGLE_OAUTH_TOKEN) {
+        tokens = JSON.parse(process.env.GOOGLE_OAUTH_TOKEN);
+        logger.info('Enhanced OAuth: Loaded tokens from environment variable');
+      } else {
+        const tokenData = await fs.readFile('./data/google-oauth-token.json', 'utf8');
+        tokens = JSON.parse(tokenData);
+        logger.info('Enhanced OAuth: Loaded tokens from file');
+      }
 
       this.oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
