@@ -7,7 +7,7 @@ import express from 'express';
 import cron from 'node-cron';
 
 import database from './config/database.js';
-import reportGeneration from './services/reportGeneration.js';
+import intelligentReportGenerator from './services/intelligentReportGenerator.js';
 import slackService from './services/slackService.js';
 import { logger } from './utils/logger.js';
 
@@ -25,31 +25,55 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/chat', chatbotRouter);
 app.use('/api/reports', reportsRouter);
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    services: {
-      database: 'connected',
-      slack: slackService.isEnabled() ? 'enabled' : 'disabled'
-    }
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Test intelligent report generator initialization
+    await intelligentReportGenerator.initialize();
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: 'v2.0-intelligent-reports',
+      services: {
+        database: 'connected',
+        intelligentReportGenerator: 'initialized',
+        tavilyAPI: process.env.TAVILY_API_KEY ? 'configured' : 'missing',
+        openaiAPI: process.env.OPENAI_API_KEY ? 'configured' : 'missing',
+        anthropicAPI: process.env.ANTHROPIC_API_KEY ? 'configured' : 'missing',
+        googleOAuth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing',
+        emailService: process.env.EMAIL_USER ? 'configured' : 'missing',
+        slack: slackService.isEnabled() ? 'enabled' : 'disabled'
+      },
+      scheduling: {
+        nextReport: getNextScheduledRun(),
+        timezone: process.env.TIMEZONE || 'America/Los_Angeles',
+        cronExpression: `0 ${parseInt(process.env.WEEKLY_REPORT_HOUR) || 7} * * 1`
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 app.get('/api/status', async (req, res) => {
   try {
     const recentReports = await database.getWeeklyReports(1);
     const lastReport = recentReports[0] || null;
-    
+
     res.json({
       status: 'operational',
       lastReportGenerated: lastReport?.week_start_date || null,
       nextScheduledRun: getNextScheduledRun(),
       services: {
-        newsIngestion: 'active',
-        socialMedia: 'active',
-        contentAnalysis: 'active',
-        ideaGeneration: 'active',
+        intelligentReports: 'active',
+        tavilySearch: 'active',
+        googleDocs: 'active',
+        emailDelivery: 'active',
+        memorySystem: 'active',
         slack: slackService.isEnabled() ? 'enabled' : 'disabled'
       }
     });
@@ -58,6 +82,34 @@ app.get('/api/status', async (req, res) => {
     res.status(500).json({
       status: 'error',
       error: 'Status check failed'
+    });
+  }
+});
+
+// Manual report generation endpoint for testing
+app.post('/api/generate-report', async (req, res) => {
+  try {
+    logger.info('🧪 Manual report generation triggered');
+
+    const report = await intelligentReportGenerator.generateWeeklyReport();
+
+    res.json({
+      success: true,
+      message: 'Report generated successfully',
+      googleDoc: report.googleDoc?.url,
+      emailSent: report.email?.success || false,
+      metadata: report.data?.metadata,
+      timestamp: new Date().toISOString()
+    });
+
+    logger.info('✅ Manual report generation completed');
+
+  } catch (error) {
+    logger.error('❌ Manual report generation failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -71,20 +123,23 @@ function getNextScheduledRun() {
 }
 
 async function runWeeklyReportJob() {
-  logger.info('Starting scheduled weekly report generation');
-  
+  logger.info('🚀 Starting scheduled weekly intelligent report generation');
+
   try {
-    const report = await reportGeneration.generateWeeklyReport();
-    
+    const report = await intelligentReportGenerator.generateWeeklyReport();
+
     if (slackService.isEnabled()) {
       await slackService.postWeeklyReport(report);
       logger.info('Weekly report posted to Slack');
     }
-    
-    logger.info('Weekly report job completed successfully');
+
+    logger.info('✅ Weekly intelligent report job completed successfully');
+    logger.info(`📄 Google Doc: ${report.googleDoc?.url || 'Created'}`);
+    logger.info(`📧 Email sent to: ${process.env.REPORT_TO_EMAIL}`);
+
   } catch (error) {
-    logger.error('Weekly report job failed:', error);
-    
+    logger.error('❌ Weekly report job failed:', error);
+
     if (slackService.isEnabled()) {
       await slackService.postErrorAlert(error, 'Weekly Report Generation');
     }
