@@ -118,24 +118,62 @@ app.post('/api/generate-report', async (req, res) => {
   }
 });
 
-// Background processing function
+// Enhanced background processing function with detailed logging
 async function processReportAsync() {
+  const startTime = Date.now();
+  let currentStep = 'INITIALIZATION';
+
   try {
-    logger.info('🚀 Starting background report generation with optimizations...');
-    const startTime = Date.now();
+    logger.info('🚀 Starting background report generation with enhanced quality system...');
+    logger.info('📊 Expected duration: 3-4 minutes with Claude 3.5 Sonnet');
+
+    currentStep = 'REPORT_GENERATION';
+    logger.info('🔄 Step 1: Initializing intelligent report generator...');
 
     const report = await intelligentReportGenerator.generateWeeklyReport();
+
+    currentStep = 'VALIDATION';
+    logger.info('🔄 Step 2: Validating report generation results...');
+
+    if (!report) {
+      throw new Error('Report generation returned null/undefined');
+    }
+
+    logger.info(`📊 Report metadata: ${JSON.stringify(report.data?.metadata || {})}`);
 
     const endTime = Date.now();
     const duration = Math.round((endTime - startTime) / 1000);
 
+    currentStep = 'COMPLETION';
     logger.info(`✅ Background report generation completed in ${duration} seconds`);
-    logger.info(`📄 Google Doc: ${report.googleDoc?.url || 'Created'}`);
-    logger.info(`📧 Email: ${report.email?.success ? 'Sent' : 'Check logs'}`);
-    logger.info(`💾 GitHub: All Tavily data preserved in repository`);
+    logger.info(`📄 Google Doc: ${report.googleDoc?.url || 'No URL found'}`);
+    logger.info(`📧 Email: ${report.email?.success ? 'Sent successfully' : 'Failed or not attempted'}`);
+    logger.info(`💾 GitHub: ${report.githubStorage ? 'Data preserved' : 'Storage status unknown'}`);
+    logger.info(`📈 Quality: Enhanced Claude 3.5 Sonnet analysis completed`);
 
   } catch (error) {
-    logger.error('❌ Background report generation failed:', error);
+    const duration = Math.round((Date.now() - startTime) / 1000);
+    logger.error(`❌ CRITICAL: Background report generation failed at step: ${currentStep}`);
+    logger.error(`❌ Duration before failure: ${duration} seconds`);
+    logger.error(`❌ Error details:`, {
+      message: error.message,
+      stack: error.stack?.split('\n').slice(0, 10).join('\n'), // First 10 lines of stack
+      name: error.name,
+      step: currentStep
+    });
+
+    // Log additional context for debugging
+    logger.error('❌ System context at failure:', {
+      nodeVersion: process.version,
+      platform: process.platform,
+      memoryUsage: process.memoryUsage(),
+      env: {
+        hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+        hasTavilyKey: !!process.env.TAVILY_API_KEY,
+        hasGitHubToken: !!process.env.GITHUB_TOKEN
+      }
+    });
   }
 }
 
