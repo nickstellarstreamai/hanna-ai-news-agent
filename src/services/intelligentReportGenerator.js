@@ -67,6 +67,12 @@ class IntelligentReportGenerator {
       logger.info('Step 1: Gathering research data from Tavily across all content pillars...');
       const tavilyData = await this.tavilyService.searchAllPillars();
 
+      // 🚨 EMERGENCY: Validate Tavily data to prevent crashes
+      logger.info(`✅ EMERGENCY: Tavily returned data: ${JSON.stringify(Object.keys(tavilyData || {}))}`);
+      if (!tavilyData || typeof tavilyData !== 'object') {
+        throw new Error('Tavily returned invalid data structure');
+      }
+
       // 🔥 CRITICAL: Save Tavily data to GitHub immediately (with crash protection)
       logger.info('💾 Step 1.1: Saving Tavily search results to GitHub...');
       let githubTavilyResult = null;
