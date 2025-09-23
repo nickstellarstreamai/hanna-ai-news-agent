@@ -218,10 +218,15 @@ class TavilyService {
 
     console.log(`\n🎯 OPTIMIZED search complete! Usage: ${this.searches_used}/${this.monthly_limit} searches used`);
 
-    // Cache the results to prevent credit waste during debugging
-    const searchesUsed = this.searches_used - searchStartCount;
-    await this.saveCachedResults(allResults, searchesUsed);
+    // 🚨 EMERGENCY FIX: Skip caching to prevent crashes
+    try {
+      const searchesUsed = this.searches_used - searchStartCount;
+      await this.saveCachedResults(allResults, searchesUsed);
+    } catch (error) {
+      console.error('❌ EMERGENCY: Caching crashed, skipping:', error.message);
+    }
 
+    console.log('✅ EMERGENCY: Tavily search completed successfully, returning results...');
     return allResults;
   }
 
