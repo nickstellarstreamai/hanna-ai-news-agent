@@ -1,5 +1,5 @@
 import TavilyService from './tavilyService.js';
-import ReportMemoryService from './reportMemoryService.js';
+import reportMemoryService from './reportMemoryService.js';
 import { FocusedAnalysisAgents } from './focusedAnalysisAgents.js';
 import oauth2Service from './oauth2ReportDelivery.js';
 import githubDataStorage from './githubDataStorage.js';
@@ -16,14 +16,16 @@ import path from 'path';
 class IntelligentReportGenerator {
   constructor() {
     this.tavilyService = new TavilyService();
-    this.memoryService = new ReportMemoryService();
+    this.memoryService = reportMemoryService;
     this.focusedAgents = new FocusedAnalysisAgents();
   }
 
   async initialize() {
     logger.info('🔄 Initializing Intelligent Report Generator...');
     try {
-      await this.memoryService.initialize();
+      if (this.memoryService.initialize) {
+        await this.memoryService.initialize();
+      }
       await githubDataStorage.initialize();
       logger.info('✅ Intelligent Report Generator initialized');
     } catch (error) {
