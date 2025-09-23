@@ -208,8 +208,13 @@ Include brief reasoning for each hook. Focus on hooks that advance strategic pos
    * Purpose: Creates compelling executive summary
    * Context: Only synthesis + key stories titles
    */
-  async createExecutiveSummary(synthesis, keyStoriesTitles) {
+  async createExecutiveSummary(summaryData) {
     logger.info('🎯 Running focused executive summary agent...');
+
+    // Extract data from the summaryData object
+    const synthesis = summaryData.analysis || '';
+    const keyStories = summaryData.keyStories || [];
+    const keyStoriesTitles = keyStories.map(story => story.title || story.summary || 'Untitled story');
 
     const prompt = `Create a compelling executive summary for this week's intelligence.
 
@@ -217,7 +222,7 @@ SYNTHESIS:
 ${synthesis}
 
 KEY STORIES:
-${keyStoriesTitles.join('\n- ')}
+${keyStoriesTitles.length > 0 ? keyStoriesTitles.join('\n- ') : 'No key stories available'}
 
 OUTPUT: 2-3 sentences that capture:
 - Biggest opportunity this week
@@ -437,7 +442,7 @@ OUTPUT: Organized watchlist with monitoring rationale for each item.`;
 
     let formatted = '';
     let totalCharCount = 0;
-    const MAX_CONTENT_LENGTH = 15000; // Prevent Claude context overflow
+    const MAX_CONTENT_LENGTH = 3000; // Reduced for GPT-4's 8K context limit
 
     logger.info('🔍 DIAGNOSTIC: Formatting research data for Claude analysis...');
 
@@ -461,8 +466,8 @@ OUTPUT: Organized watchlist with monitoring rationale for each item.`;
               formatted += `${index + 1}.${itemIndex + 1} ${item.title}\n`;
               formatted += `URL: ${item.url}\n`;
 
-              // 🔥 CRITICAL FIX: Limit content to prevent Claude API hangs
-              const truncatedContent = (item.content || '').substring(0, 200); // Reduced from 500 to 200
+              // 🔥 CRITICAL FIX: Limit content to prevent API hangs - Further reduced for GPT-4
+              const truncatedContent = (item.content || '').substring(0, 100); // Reduced to 100 chars for GPT-4
               formatted += `Content: ${truncatedContent}...\n`;
 
               if (item.published_date) {
