@@ -1,4 +1,4 @@
-import TavilyService from './tavilyService.js';
+import { TavilyService } from './tavilyService.js';
 import reportMemoryService from './reportMemoryService.js';
 import { FocusedAnalysisAgents } from './focusedAnalysisAgents.js';
 import oauth2Service from './oauth2ReportDelivery.js';
