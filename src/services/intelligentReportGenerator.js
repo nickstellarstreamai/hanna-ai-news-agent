@@ -67,16 +67,28 @@ class IntelligentReportGenerator {
       logger.info('Step 1: Gathering research data from Tavily across all content pillars...');
       const tavilyData = await this.tavilyService.searchAllPillars();
 
-      // 🔥 CRITICAL: Save Tavily data to GitHub immediately
+      // 🔥 CRITICAL: Save Tavily data to GitHub immediately (with crash protection)
       logger.info('💾 Step 1.1: Saving Tavily search results to GitHub...');
-      const githubTavilyResult = await githubDataStorage.saveTavilyResults(tavilyData, weekStartFormatted);
-      if (githubTavilyResult?.success) {
-        logger.info(`✅ Tavily data saved to GitHub: ${githubTavilyResult.url}`);
+      let githubTavilyResult = null;
+      try {
+        githubTavilyResult = await githubDataStorage.saveTavilyResults(tavilyData, weekStartFormatted);
+        if (githubTavilyResult?.success) {
+          logger.info(`✅ Tavily data saved to GitHub: ${githubTavilyResult.url}`);
+        }
+      } catch (error) {
+        logger.error('❌ CRITICAL: GitHub save crashed, continuing without it:', error.message);
       }
 
-      // Step 2: Get trending topics for additional context
+      // Step 2: Get trending topics for additional context (with crash protection)
       logger.info('Step 1.5: Gathering trending topics...');
-      const trendingData = await this.tavilyService.searchTrendingTopics();
+      let trendingData = [];
+      try {
+        trendingData = await this.tavilyService.searchTrendingTopics();
+        logger.info(`✅ Trending topics gathered: ${trendingData.length} topics`);
+      } catch (error) {
+        logger.error('❌ CRITICAL: Trending search crashed, continuing without it:', error.message);
+        trendingData = []; // Use empty array as fallback
+      }
 
       // 🔥 TEMPORARILY DISABLED: Legacy research agents hanging in production
       // These Task-based agents are causing the workflow to hang indefinitely
